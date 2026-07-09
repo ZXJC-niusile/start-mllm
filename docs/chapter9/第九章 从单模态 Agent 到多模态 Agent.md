@@ -39,7 +39,7 @@ flowchart LR
 - 多模态上下文怎样存入记忆
 
 <div align="center">
-  <img src="../images/ch9-agent-workflow.svg" width="820" alt="多模态 Agent 工作流图">
+  ![多模态 Agent 工作流图](../images/ch9-agent-workflow.svg)
 </div>
 
 ## 三、多模态 Agent 的四个关键模块
