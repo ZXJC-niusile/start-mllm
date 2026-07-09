@@ -122,7 +122,7 @@
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=datawhalechina/start-mllm&type=Date)](https://star-history.com/#datawhalechina/start-mllm&Date)
+[![Star History Chart](./docs/images/star-history.svg)](https://star-history.com/#datawhalechina/start-mllm&Date)
 
 ## 关注我们
 
