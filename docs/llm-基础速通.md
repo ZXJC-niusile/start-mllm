@@ -4,7 +4,7 @@
 
 如果你只有 Python 基础，对 Transformer、Embedding、自回归生成这些概念还不熟悉，花 30 分钟读完本章就够了。我们只讲**后续章节会直接用到**的概念，不展开数学推导。
 
-> **想更系统地补课？** 本教程属于 [Datawhale](https://github.com/datawhalechina) 开源社区，社区内有更完整的前置课程：[聪明办法学 Python](https://github.com/datawhalechina/learn-python-the-smart-way-v2)、[thorough-pytorch](https://github.com/datawhalechina/thorough-pytorch)、[base-llm：从 NLP 到 LLM](https://github.com/datawhalechina/base-llm)、[self-llm：开源大模型食用指南](https://github.com/datawhalechina/self-llm)。本章已覆盖后续所需的最小知识量，上述课程供按需深入。
+> **想更系统地补课？** 本教程属于 [Datawhale](https://github.com/datawhalechina) 开源社区，社区内有更完整的前置课程：[thorough-pytorch](https://github.com/datawhalechina/thorough-pytorch)、[base-llm：从 NLP 到 LLM](https://github.com/datawhalechina/base-llm)、[self-llm：开源大模型食用指南](https://github.com/datawhalechina/self-llm)。本章已覆盖后续所需的最小知识量，上述课程供按需深入。
 
 ## 一、Transformer：LLM 的底层架构
 
@@ -12,9 +12,11 @@
 
 ### 1.1 Self-Attention：让每个词关注其他词
 
-传统模型处理文本是从左到右逐个读，像流水线一样。Transformer 的不同之处在于：**每个 token 可以同时“看到”序列中所有其他 token**，然后决定该关注哪些。
+传统模型处理文本是从左到右逐个读，像流水线一样。Transformer 的不同之处在于引入了 **Self-Attention（自注意力机制）**。
 
-这个机制叫 **Self-Attention（自注意力）**。用一句话概括：
+在原始的 Transformer 设计（以及像 ViT 这样的视觉编码器）中：**每个 token 可以同时“看到”序列中所有其他 token**，然后决定该关注哪些。
+
+用一句话概括这个基础机制：
 
 > 每个 token 都在问：“序列里哪些 token 和我最相关？”然后把相关 token 的信息加权混合到自己身上。
 
@@ -22,7 +24,16 @@
 
 - 当处理“模型”这个 token 时，Self-Attention 会计算它和“大”、“语言”、“很”、“强大”各自的关联度
 - “模型”和“语言”关联度高 → 后者的信息权重更大
-- 最终“模型”的表示就融合了上下文信息
+- 最终“模型”的表示就融合了全局的上下文信息
+
+**大语言模型的特殊之处：因果自注意力（Causal Self-Attention）**
+
+虽然基础的注意力机制能看到全局，但对于现代大语言模型（基于 Decoder-Only 架构），在做文本生成时，必须防止模型“偷看”未来的词。因此它们使用的是它的变体：**因果自注意力（Causal Self-Attention）**。
+
+在生成文本时：
+- 每个 token **只能“看到”它前面的 token 以及它自己**，后面的 token 会被掩码（Mask）遮挡。
+- 例如生成“大语言模型很强大”时，处理到“模型”这个 token，它只能和“大”、“语言”、“模型”计算关联度，而**看不到**未来的“很”、“强大”。
+- 它把前置的相关信息加权混合，从而帮助预测下一个 token。
 
 这就是 Transformer 能理解上下文的核心原因。
 
