@@ -1,6 +1,10 @@
 - [Start-MLLM](./README.md)
 
-- <strong>预备篇</strong>
+- <strong>基础篇</strong>
+  - [基础篇总览](./foundation/README.md)
+  - [00 环境、命令行与 Python 项目基础](./foundation/00-环境命令行与Python项目基础.md)
+
+- <strong>入门导航</strong>
   - [前言](./前言.md)
   - [Chapter 0 环境准备](./chapter0-环境准备.md)
   - [LLM 基础速通](./llm-基础速通.md)
