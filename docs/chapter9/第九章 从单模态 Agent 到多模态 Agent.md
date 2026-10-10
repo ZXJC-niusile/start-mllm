@@ -71,6 +71,8 @@ flowchart LR
 
 保存图像摘要、关键字段、用户历史偏好、多轮任务上下文。
 
+这四个模块是本教程的工程拆分，不是一篇论文规定的唯一 Agent 架构。与“推理—行动—观察”交替相关的方法可读 [ReAct 原论文](https://arxiv.org/abs/2210.03629)；本章有限步骤的示例并不等于复现完整 ReAct，也不代表已实现持久记忆。
+
 ## 四、一个典型案例：截图助手 Agent
 
 假设用户给你一张报错截图，并说：
@@ -236,6 +238,12 @@ python docs/chapter9/app/agent_workflow_demo.py
 - 做系统时，一定要区分感知、规划、执行、记忆四个环节。
 
 **第十章**把这些收成可执行的迭代主线：[第四章](../chapter4/第四章%20数据、训练与微调.md) 数据、[第五章](../chapter5/第五章%20评测体系与工程选型.md) 评测、[第六章](../chapter6/第六章%20推理部署与%20Serving.md) 部署与本章工作流，下面收成一条你能照着跑 30 天的路线，避免学完就散。
+
+## 原始论文与深入学习
+
+- **方法论文**：Yao 等，*ReAct: Synergizing Reasoning and Acting in Language Models*（2022 / ICLR 2023，[原文](https://arxiv.org/abs/2210.03629)）。关注行动如何取得新观察并影响后续决策；论文不能为本章 OCR 占位工具的识别能力背书。
+- **协议文档，不是 Agent 论文**：[OpenAI Function calling](https://developers.openai.com/api/docs/guides/function-calling)。对照工具定义、调用标识和工具结果回传；schema 只规定数据形式，不自动执行工具、校验业务结果或提供授权与回退策略。
+- **练习**：对照 v1 的规则分支与 v2 的工具调用，画出一次完整轨迹，标出真实工具、占位返回和结束条件，避免把“能返回 JSON”当作可靠完成任务。
 
 ## 十三、章节跳转
 
