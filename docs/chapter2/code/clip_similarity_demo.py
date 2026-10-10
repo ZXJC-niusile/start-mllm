@@ -24,12 +24,7 @@ from transformers import CLIPProcessor, CLIPModel
 
 
 def main():
-    # 1. 加载模型和 processor
-    print("Loading CLIP model...")
-    model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-
-    # 2. 准备图片（用占位图或你自己的图片）
+    # 1. 准备图片（用占位图或你自己的图片）
     # 如果没有图片，先运行 docs/chapter4/code/create_placeholder_images.py 生成一张
     img_candidates = [
         Path(__file__).with_name("sample_receipt.png"),
@@ -48,6 +43,11 @@ def main():
 
     image = Image.open(image_path).convert("RGB")
     print(f"Using image: {image_path}")
+
+    # 2. 图片可读取后，再加载模型和 processor
+    print("Loading CLIP model...")
+    model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
     # 3. 候选文本（与默认票据占位图保持一致，避免示例语义错配）
     texts = [
