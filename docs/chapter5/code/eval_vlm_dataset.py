@@ -56,6 +56,17 @@ def _resolve_path_arg(raw: str) -> Path:
     return p
 
 
+def _validate_output_path(dataset_path: Path, output_path: Path) -> None:
+    """在任何 API 请求或写入之前拒绝覆盖输入，包括符号链接和硬链接。"""
+    if (dataset_path.resolve() == output_path.resolve()
+            or (output_path.exists() and dataset_path.samefile(output_path))):
+        raise ValueError("输出文件不能与评测数据集相同；请为 --output 指定另一个文件")
+    if not output_path.parent.is_dir():
+        raise NotADirectoryError(f"Output directory does not exist: {output_path.parent}")
+    if output_path.exists() and not output_path.is_file():
+        raise ValueError(f"Output path is not a file: {output_path}")
+
+
 def parse_args() -> argparse.Namespace:
     env = os.environ
     parser = argparse.ArgumentParser(
@@ -111,6 +122,7 @@ def main() -> None:
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
 
+    _validate_output_path(dataset_path, output_path)
     _ensure_dataset_images_exist(dataset_path)
 
     from openai import OpenAI
