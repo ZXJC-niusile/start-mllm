@@ -2,6 +2,7 @@
 生成 sample_multimodal_sft.jsonl 中引用的占位图（纯色块）。
 
 跑通 prepare_dataset_manifest.py 前请先执行本脚本，或自行替换为真实票据/截图。
+重复运行会保留已有路径（包括你替换的真实图片）；只创建缺少的占位图。
 纯标准库，无需 pip 额外依赖。
 """
 
@@ -25,7 +26,12 @@ def save_solid_png(path: Path, width: int, height: int, r: int, g: int, b: int) 
     ihdr = struct.pack("!2I5B", width, height, 8, 2, 0, 0, 0)
     png = signature + _png_chunk(b"IHDR", ihdr) + _png_chunk(b"IDAT", compressed) + _png_chunk(b"IEND", b"")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(png)
+    # 排他创建，避免重复运行覆盖真实图片，也不跟随已有符号链接。
+    try:
+        with path.open("xb") as output:
+            output.write(png)
+    except FileExistsError:
+        print(f"Skipped existing path: {path}")
 
 
 def main() -> None:
@@ -34,8 +40,9 @@ def main() -> None:
     save_solid_png(root / "sample_error.png", 320, 200, 255, 225, 225)
     save_solid_png(root / "sample_product.png", 400, 400, 245, 245, 250)
     save_solid_png(root / "sample_chart.png", 480, 320, 230, 240, 255)
-    print(f"OK: wrote placeholder PNGs under {root}")
+    print(f"OK: placeholder setup finished under {root} (existing paths kept)")
 
 
 if __name__ == "__main__":
     main()
+
