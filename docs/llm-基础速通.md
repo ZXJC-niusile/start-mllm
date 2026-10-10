@@ -8,6 +8,8 @@
 
 ## 一、Transformer：LLM 的底层架构
 
+原始来源：[Vaswani 等，Attention Is All You Need（2017）](https://arxiv.org/abs/1706.03762)。原论文是编码器—解码器模型；下面的 Decoder-Only 是相关架构路线，不能把两者等同。
+
 当前几乎所有大语言模型都基于 **Transformer** 架构。你不需要记住它的全部细节，但需要理解它的两个核心思想。
 
 ### 1.1 Self-Attention：让每个词关注其他词
@@ -388,6 +390,13 @@ x = x.to("cuda")                    # 搬到 GPU
 Tensor 就是 PyTorch 版的多维数组。你在后续章节里看到的 `input_ids`、`pixel_values`、`attention_mask` 都是 tensor。
 
 > **一句话总结**：PyTorch 在本教程里主要就做两件事——加载模型（`from_pretrained`）和生成输出（`model.generate`）。更深入的训练用法（Dataset、DataLoader、Trainer）在第四章 LoRA 微调时会结合具体代码讲解。
+
+## 原始论文与深入学习
+
+- **Transformer**：Vaswani 等，*Attention Is All You Need*（2017，[论文](https://arxiv.org/abs/1706.03762)）。重点对照注意力、位置编码和解码器因果掩码。
+- **Word2Vec 类比的来源**：Mikolov 等，*Efficient Estimation of Word Representations in Vector Space*（2013，[论文](https://arxiv.org/abs/1301.3781)）。静态词向量的类比现象不保证现代 LLM 的每个输入嵌入都有相同性质。
+- **核采样**：Holtzman 等，*The Curious Case of Neural Text Degeneration*（2019 / ICLR 2020，[论文](https://arxiv.org/abs/1904.09751)）。论文解释 top-p 的动态候选集合，不为某组 OCR 温度参数提供通用正确性保证。
+- **官方实现文档**：[Transformers KV Cache](https://huggingface.co/docs/transformers/main/kv_cache) 与 [多模态 Chat Template](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal)。用它们核对缓存策略和 API 行为；它们是软件文档，不是发明这些方法的论文。
 
 ## 六、章节跳转
 

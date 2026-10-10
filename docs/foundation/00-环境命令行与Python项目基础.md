@@ -256,6 +256,16 @@ dir
 
 ---
 
+## 深入学习：官方工具文档
+
+本章讲环境、命令与文件路径，不需要用模型论文作为依据。按实际卡住的位置查阅：
+
+- [Python venv](https://docs.python.org/3/library/venv.html)：理解隔离环境；与本教程使用的 conda 是不同环境管理工具，不要混用激活命令。
+- [pip 用户指南](https://pip.pypa.io/en/stable/user_guide/)：核对 `python -m pip` 与依赖安装行为。
+- [Python pathlib](https://docs.python.org/3/library/pathlib.html)：对照当前目录、相对路径与 `Path` 的用法。
+
+查文档时选择与你安装版本一致的页面；先用本章排查命令确认 Python 解释器与当前目录，再复制命令。
+
 ## 0.12 本章小结
 
 恭喜你！学完这一章，你已经具备了初级但极其重要的工程调试能力。你现在真正带走的武器是：
