@@ -3,7 +3,7 @@
 ===============================================================
 与 agent_workflow_demo.py 的区别：
   - v1（demo 版）用关键字匹配（if "报错" in summary）路由工具，教学和原型可用
-  - v2（本文件）用 OpenAI 标准的 tool-calling JSON schema，更适合生产环境
+  - v2（本文件）用 OpenAI 标准的 tool-calling JSON schema，演示一轮工具调用协议（仍是教学骨架）
 
 依赖：
     pip install openai python-dotenv
@@ -48,7 +48,7 @@ def to_data_url(image_path: str) -> str:
 
 
 # ========== Tool Schema 定义 ==========
-# 这是 OpenAI 兼容接口的标准函数调用格式，比关键字匹配更稳定、更可扩展
+# 这是 OpenAI 兼容接口的标准函数调用格式，参数仍需在本地校验，工具实现仍为占位
 TOOLS = [
     {
         "type": "function",
@@ -109,7 +109,8 @@ class MultimodalAgentV2:
             "你是一个多模态助手。请先分析用户提供的图片，然后根据用户问题决定下一步：\n"
             "1. 如果图片包含报错、异常、错误码，请调用 knowledge_lookup 工具\n"
             "2. 如果需要提取金额、日期、表格等结构化信息，请调用 structured_extract 工具\n"
-            "3. 否则直接回答用户问题"
+            "3. 否则直接回答用户问题。工具目前只是占位实现；若返回 not_implemented 或 error，"
+            "请明确说明未完成检索或抽取，不要把占位结果当成事实。"
         )
 
         messages = [
@@ -135,6 +136,7 @@ class MultimodalAgentV2:
         result = {
             "content": message.content,
             "tool_calls": [],
+            "messages": messages + [message.model_dump(exclude_none=True)],
         }
 
         # 检查模型是否请求了工具调用
@@ -143,7 +145,7 @@ class MultimodalAgentV2:
                 result["tool_calls"].append({
                     "id": tc.id,
                     "name": tc.function.name,
-                    "arguments": json.loads(tc.function.arguments),
+                    "arguments": tc.function.arguments,  # 保留原始 JSON，执行前再校验
                 })
 
         return result
@@ -159,12 +161,26 @@ class MultimodalAgentV2:
             args = tc["arguments"]
             tool_id = tc["id"]
 
-            if name == "knowledge_lookup":
-                output = self.knowledge_lookup(args.get("error_keywords", ""))
-            elif name == "structured_extract":
-                output = self.structured_extract(args.get("fields", []))
-            else:
-                output = f"未知工具: {name}"
+            try:
+                if name not in {"knowledge_lookup", "structured_extract"}:
+                    raise ValueError(f"Unknown tool: {name}")
+                args = json.loads(args)
+                if not isinstance(args, dict):
+                    raise ValueError("Tool arguments must be a JSON object.")
+                if name == "knowledge_lookup":
+                    keywords = args.get("error_keywords")
+                    if not isinstance(keywords, str) or not keywords.strip():
+                        raise ValueError("error_keywords must be a non-empty string.")
+                    output = self.knowledge_lookup(keywords)
+                else:
+                    fields = args.get("fields")
+                    if (not isinstance(fields, list) or not fields
+                            or any(not isinstance(f, str) or not f.strip() for f in fields)):
+                        raise ValueError("fields must be a non-empty list of non-empty strings.")
+                    output = self.structured_extract(fields)
+            except Exception as exc:
+                # 一条调用失败也要返回对应结果，不能破坏其余调用的消息配对。
+                output = json.dumps({"status": "error", "error": str(exc)}, ensure_ascii=False)
 
             outputs.append({
                 "tool_call_id": tool_id,
@@ -176,32 +192,28 @@ class MultimodalAgentV2:
 
     def knowledge_lookup(self, error_keywords: str) -> str:
         """占位实现：实际项目中应接入知识库或向量检索。"""
-        return (
-            f"[knowledge_lookup 结果] 已检索到与 '{error_keywords}' 相关的文档。\n"
-            "建议：1) 检查配置文件路径是否正确；2) 确认依赖版本匹配；3) 查看官方 FAQ。"
-        )
+        return json.dumps({
+            "status": "not_implemented",
+            "error_keywords": error_keywords,
+            "message": "知识检索占位工具：尚未连接知识库，未执行检索。",
+        }, ensure_ascii=False)
 
     def structured_extract(self, fields: list[str]) -> str:
-        """占位实现：实际项目中应接入 OCR 或规则抽取。"""
-        return (
-            f"[structured_extract 结果] 已提取字段: {', '.join(fields)}。\n"
-            "占位值示例：金额=1280.00, 日期=2024-01-15, 商户名=示例商店"
-        )
+        """占位实现：没有接收图片或 OCR 文本，不能产生真实字段值。"""
+        return json.dumps({
+            "status": "not_implemented",
+            "requested_fields": fields,
+            "values": {field: None for field in fields},
+            "message": "结构化提取占位工具：尚未连接 OCR 或解析器，未执行抽取。",
+        }, ensure_ascii=False)
 
     def summarize(self, original_question: str, perception: dict, tool_outputs: list[dict]) -> str:
         """
         第三步：汇总。
         把感知结果和工具执行结果发给模型，生成最终回答。
         """
-        # 构建包含工具结果的消息链
-        messages = [
-            {"role": "system", "content": "你是一个多模态助手。请根据图片分析结果和工具返回的信息，给出简洁、准确的最终回答。"},
-            {"role": "user", "content": f"用户问题：{original_question}"},
-        ]
-
-        # 添加感知结果
-        if perception["content"]:
-            messages.append({"role": "assistant", "content": f"图片分析：{perception['content']}"})
+        # 延续原始图文上下文，并保留 assistant.tool_calls，才能匹配 tool_call_id。
+        messages = list(perception["messages"])
 
         # 添加工具结果（用 tool 角色）
         for out in tool_outputs:
@@ -218,7 +230,10 @@ class MultimodalAgentV2:
             max_tokens=512,
         )
 
-        return response.choices[0].message.content or ""
+        answer = response.choices[0].message.content
+        if not answer or not answer.strip():
+            raise ValueError("Model returned no final answer.")
+        return answer
 
     def run(self, image_path: str, question: str) -> dict[str, object]:
         if not question.strip():
@@ -233,7 +248,12 @@ class MultimodalAgentV2:
             tool_outputs = self.execute_tools(perception["tool_calls"])
 
         # Step 3: 汇总生成最终回答
-        final_answer = self.summarize(question, perception, tool_outputs)
+        if perception["tool_calls"]:
+            final_answer = self.summarize(question, perception, tool_outputs)
+        else:
+            final_answer = perception["content"]
+            if not final_answer or not final_answer.strip():
+                raise ValueError("Model returned no answer or tool calls.")
 
         return {
             "status": "ok",
@@ -247,10 +267,10 @@ class MultimodalAgentV2:
 
 def main() -> None:
     raw_path = os.getenv("IMAGE_PATH", "").strip()
-    image_path = str(resolve_image_path(raw_path or None, script_file=__file__))
     question = os.getenv("QUESTION", "请分析这张图片，并给出下一步建议。")
 
     try:
+        image_path = str(resolve_image_path(raw_path or None, script_file=__file__))
         agent = MultimodalAgentV2()
         result = agent.run(image_path, question)
     except Exception as exc:
