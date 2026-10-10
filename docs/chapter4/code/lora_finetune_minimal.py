@@ -1,13 +1,14 @@
 """
-最小可跑的多模态 LoRA 微调脚本
+多模态 LoRA 微调教学脚本（需真实 GPU 验证）
 ================================
-目标：在 Colab T4 (16GB) 或本地 24GB 卡上，对 Qwen2.5-VL-3B-Instruct
-      做 100 条数据的 caption 微调，建立"数据 → 训练 → 验证"的闭环手感。
+目标：在单进程、单张可见且原生支持 BF16 的 NVIDIA CUDA GPU 上，
+      对 Qwen2.5-VL-3B-Instruct 做小规模微调。CPU、T4、自动卸载不在本示例支持范围。
+      是否能容纳模型、激活和优化器仍需实测，不承诺某个显存容量一定可跑。
 
 依赖安装（与 requirements-api.txt 不冲突，需要 torch）：
-    pip install torch transformers accelerate peft datasets pillow
+    pip install -r requirements.txt
 
-最低版本要求：transformers >= 4.45（Qwen2.5-VL 模型支持）
+最低版本要求：transformers >= 4.49.0（Qwen2.5-VL 模型支持）
 
 运行前准备：
     1. 准备自己的图文数据，格式同 sample_multimodal_sft.jsonl
@@ -17,30 +18,24 @@
 
 import json
 import os
-import warnings
 from pathlib import Path
 
 import torch
 from datasets import Dataset
 from peft import LoraConfig, get_peft_model
 from PIL import Image
-from transformers import (
-    AutoProcessor,
-    Qwen2_5_VLForConditionalGeneration,
-    TrainingArguments,
-    Trainer,
-    __version__ as transformers_version,
-)
+from transformers import __version__ as transformers_version
 
-_TRANSFORMERS_MIN = "4.45"
-_TRANSFORMERS_VER_TUPLE = tuple(int(x) for x in _TRANSFORMERS_MIN.split("."))
-_TRANSFORMERS_CUR_TUPLE = tuple(int(x) for x in transformers_version.split(".")[:2])
-if _TRANSFORMERS_CUR_TUPLE < _TRANSFORMERS_VER_TUPLE:
-    warnings.warn(
-        f"当前 transformers 版本为 {transformers_version}，建议升级到 >= {_TRANSFORMERS_MIN} 以确保 Qwen2.5-VL 兼容。"
-        f"运行：pip install --upgrade transformers",
-        stacklevel=1,
-    )
+
+def _require_transformers_version(version):
+    if tuple(int(x) for x in version.split(".")[:2]) < (4, 49):
+        raise ImportError(f"Qwen2.5-VL 需要 transformers>=4.49.0，当前为 {version}；"
+                          "请运行 pip install -r requirements.txt")
+
+
+# 必须在导入较新版本才提供的模型类之前检查。
+_require_transformers_version(transformers_version)
+from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration, TrainingArguments, Trainer
 
 
 # ======================== 用户配置区 ========================
@@ -182,14 +177,29 @@ class SimpleMultimodalDataset(torch.utils.data.Dataset):
         return self.samples[idx]
 
 
+def _require_training_device():
+    """保守限定单卡原生 BF16；不把可创建 BF16 tensor 当作硬件支持。"""
+    cuda_version = torch.version.cuda
+    if not torch.cuda.is_available() or cuda_version is None:
+        raise RuntimeError("本训练示例需要 NVIDIA CUDA GPU；不支持 CPU/其他后端训练")
+    if torch.cuda.device_count() != 1 or int(os.environ.get("WORLD_SIZE", "1")) != 1:
+        raise RuntimeError("本示例仅支持单进程、单张可见 GPU；请设置 CUDA_VISIBLE_DEVICES 后直接运行 Python")
+    if (int(cuda_version.split(".")[0]) < 11
+            or torch.cuda.get_device_capability(0)[0] < 8
+            or not torch.cuda.is_bf16_supported()):
+        raise RuntimeError("本示例需要原生 BF16 支持（CUDA>=11、GPU compute capability>=8）；"
+                           "T4 不受支持，请换兼容 GPU 或使用已验证的其他训练方案")
+
+
 def main():
+    _require_training_device()  # 先检查，再下载 processor/模型。
     print(f"PyTorch version: {torch.__version__}")
     print(f"CUDA available: {torch.cuda.is_available()}")
     if torch.cuda.is_available():
         print(f"GPU: {torch.cuda.get_device_name(0)}")
         print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda"
 
     # 1. 加载模型和 processor
     print(f"\nLoading model: {MODEL_ID}")
@@ -197,7 +207,7 @@ def main():
     model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
         MODEL_ID,
         torch_dtype=torch.bfloat16,
-        device_map="auto",
+        # Trainer 负责单卡放置；不用推理用的自动分片/CPU/disk 卸载。
         trust_remote_code=True,
     )
     print(f"Model loaded. Trainable params: {sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6:.1f}M")
@@ -230,8 +240,8 @@ def main():
         logging_steps=5,
         save_steps=50,
         save_total_limit=2,
-        fp16=torch.cuda.is_available() and not torch.cuda.is_bf16_supported(),
-        bf16=torch.cuda.is_available() and torch.cuda.is_bf16_supported(),
+        fp16=False,
+        bf16=True,
         remove_unused_columns=False,
         report_to="none",  # 不连 wandb，简化首次体验
     )
