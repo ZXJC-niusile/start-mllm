@@ -15,7 +15,7 @@ DOCS_ROOT = Path(__file__).resolve().parent
 def resolve_image_path(raw: str | None, *, script_file: str) -> Path:
     """
     - 未设置 IMAGE_PATH 时：若存在第五章占位图则使用，否则抛出明确提示。
-    - 已设置时：依次尝试绝对/相对路径、当前工作目录、脚本目录、`docs/` 下的相对路径。
+    - 已设置时：依次尝试绝对/相对路径、当前工作目录、脚本目录、`docs/`、仓库根目录下的相对路径。
     """
     placeholder = DOCS_ROOT / "chapter5" / "code" / "images" / "sample_ui.png"
     s = (raw or "").strip()
@@ -35,6 +35,7 @@ def resolve_image_path(raw: str | None, *, script_file: str) -> Path:
         Path.cwd() / s,
         script_dir / s,
         DOCS_ROOT / s,
+        DOCS_ROOT.parent / s,
     ]
     seen: set[str] = set()
     for c in candidates:
@@ -49,5 +50,5 @@ def resolve_image_path(raw: str | None, *, script_file: str) -> Path:
             continue
 
     raise FileNotFoundError(
-        f"找不到图片: {raw!r}。已尝试：当前目录、脚本目录、以及相对于 {DOCS_ROOT} 的路径。"
+        f"找不到图片: {raw!r}。已尝试：当前目录、脚本目录、以及相对于 {DOCS_ROOT} 和仓库根目录 {DOCS_ROOT.parent} 的路径。"
     )
