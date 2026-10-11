@@ -2,9 +2,9 @@
 
 > **前置章节**：[Chapter 0 环境准备](./chapter0-环境准备.md)　|　**下一章**：[第一章 多模态大模型概览](./chapter1/第一章%20多模态大模型概览.md)
 
-如果你只有 Python 基础，对 Transformer、Embedding、自回归生成这些概念还不熟悉，可以先用约 30 分钟浏览本章，建立阅读正文的术语框架。理解和练习所需时间因基础而异；本章介绍后续常用概念，不展开数学推导，也不替代完整的深度学习或训练基础。
+如果你只有 Python 基础，对 Transformer、Embedding、自回归生成这些概念还不熟悉，花 30 分钟读完本章就够了。我们只讲**后续章节会直接用到**的概念，不展开数学推导。
 
-> **想更系统地补课？** 本教程属于 [Datawhale](https://github.com/datawhalechina) 开源社区，社区内有更完整的前置课程：[thorough-pytorch](https://github.com/datawhalechina/thorough-pytorch)、[base-llm：从 NLP 到 LLM](https://github.com/datawhalechina/base-llm)、[self-llm：开源大模型食用指南](https://github.com/datawhalechina/self-llm)。概念阅读与 API 实践可以先从本章开始；本地推理建议补充张量、设备与精度知识，训练与微调还需要进一步学习 PyTorch 训练流程，上述课程可按需补充。
+> **想更系统地补课？** 本教程属于 [Datawhale](https://github.com/datawhalechina) 开源社区，社区内有更完整的前置课程：[thorough-pytorch](https://github.com/datawhalechina/thorough-pytorch)、[base-llm：从 NLP 到 LLM](https://github.com/datawhalechina/base-llm)、[self-llm：开源大模型食用指南](https://github.com/datawhalechina/self-llm)。本章已覆盖后续所需的最小知识量，上述课程供按需深入。
 
 ## 一、Transformer：LLM 的底层架构
 
@@ -329,11 +329,11 @@ Loss 逐步下降说明模型在学习。但要注意：
 
 后续章节里提到“冻结基座模型”，就是指保持预训练参数不变，只训练新加的模块（如 Connector、LoRA 适配器）。
 
-## 五、PyTorch 常用操作速查
+## 五、PyTorch 五分钟速查
 
 如果你走 **API 路线**（第七章 OpenAI 兼容接口、第八章 Gradio Demo、第九章 Agent），完全不需要 PyTorch，可以跳过本节。
 
-下面 5 个模式用于帮助你辨认 **本地推理代码**（第七章 Transformers 方式）中的常见操作。若要修改模型代码或尝试 **LoRA 微调**（第四章，选学），还需理解张量形状、设备与精度，并进一步学习自动求导和训练流程；这些速查示例不构成完整的训练入门。
+如果你想走 **本地推理路线**（第七章 Transformers 方式）或动手做 **LoRA 微调**（第四章），下面 5 个模式够你用了：
 
 ### 5.1 检查 GPU 是否可用
 
