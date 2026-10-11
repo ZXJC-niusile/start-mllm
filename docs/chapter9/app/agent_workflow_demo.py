@@ -57,7 +57,10 @@ class MultimodalAgent:
             ],
             max_tokens=256,
         )
-        return response.choices[0].message.content
+        summary = response.choices[0].message.content
+        if not summary or not summary.strip():
+            raise ValueError("Model returned no perception summary.")
+        return summary
 
     def decide_tools(self, summary: str) -> list[str]:
         tools = []
@@ -101,11 +104,11 @@ class MultimodalAgent:
         return final_response
 
 
-def main() -> None:
+def main() -> int:
     raw_path = os.getenv("IMAGE_PATH", "").strip()
-    image_path = str(resolve_image_path(raw_path or None, script_file=__file__))
     question = os.getenv("QUESTION", "请分析这张图片，并给出下一步建议。")
     try:
+        image_path = str(resolve_image_path(raw_path or None, script_file=__file__))
         agent = MultimodalAgent()
         result = agent.run(image_path, question)
     except Exception as exc:
@@ -115,7 +118,8 @@ def main() -> None:
             "question": question,
         }
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result.get("status") == "ok" else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -157,7 +157,7 @@ flowchart LR
 
 1. 先调用多模态模型生成图像摘要。
 2. 根据任务类型决定是否调用额外工具。
-3. 将感知结果、工具结果和用户目标汇总成最终答案。
+3. 返回感知摘要、选中的工具与占位结果，供你继续实现最终总结。
 
 这一版脚本还补了最基本的输入校验和异常返回，方便你后续继续往真实工作流扩展，而不是停留在“理想路径跑通”。
 
@@ -177,16 +177,27 @@ python docs/chapter9/app/agent_workflow_demo.py
 
 `agent_workflow_demo.py` 使用**关键字匹配**（`if “报错” in summary`）做工具路由，这是教学简化写法，优点是代码少、好理解；缺点是扩展性差、容易误判。
 
-如果你要做生产环境或继续扩展，建议改用 **`agent_workflow_v2.py`**：
+要继续学习工具调用协议，可以对照 **`agent_workflow_v2.py`**（仍是教学骨架，不是生产框架）：
 
 - 使用 OpenAI 标准的 **tool-calling JSON schema** 定义工具
 - 让模型自己决定是否调用工具、调用哪个工具、传什么参数
-- 天然支持多工具组合、参数校验、错误回退
+- 演示一轮规划中的多工具调用，并在本地检查参数、返回工具错误
+- 汇总时保留原始图文输入和 `assistant.tool_calls`，再按 `tool_call_id` 配对工具结果；无工具调用时直接返回首轮答案
+
+两版的检索与抽取函数都只是占位工具。v2 返回 `not_implemented`，字段值为 `null`，不代表已查到文档或识别出票据内容。接入真实工具时，还需传入图片或 OCR 文本等证据。`status: ok` 只表示脚本流程完成，不保证工具已实现或任务成功；请同时检查 `tool_outputs`。
+
+工具 schema 描述参数形状，不会自动实现工具、重试、记忆或安全控制。v2 只执行一轮工具调用，不包含多轮 Agent 循环。接口与模型需要同时支持图像输入和 Chat Completions 工具调用，兼容接口的能力应单独核实。协议参考：[OpenAI Function calling](https://developers.openai.com/api/docs/guides/function-calling)。
 
 运行方式相同，只是换文件名：
 
 ```bash
 python docs/chapter9/app/agent_workflow_v2.py
+```
+
+可先运行离线测试（仅需 Python 标准库，不调用 API、不需要密钥）：
+
+```bash
+python -m unittest discover -s docs/chapter9/app -p "test_agent_workflow.py" -v
 ```
 
 **学习建议**：先跑通 v1 理解“感知 → 路由 → 工具 → 汇总”的链路，再读 v2 的代码理解 schema 写法。两者并存，方便对照。
