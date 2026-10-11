@@ -11,6 +11,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _positive_int(raw: str) -> int:
+    try:
+        value = int(raw)
+    except (ValueError, TypeError):
+        raise argparse.ArgumentTypeError("max_tokens must be a positive integer.") from None
+    if value <= 0:
+        raise argparse.ArgumentTypeError("max_tokens must be a positive integer.")
+    return value
+
+
 def to_data_url(image_path: str) -> str:
     path = Path(image_path)
     if not path.exists():
@@ -96,8 +106,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--max-tokens",
-        type=int,
-        default=int(env.get("EVAL_MAX_TOKENS", "256")),
+        type=_positive_int,
+        default=env.get("EVAL_MAX_TOKENS", "256"),
         help="每条请求 max_tokens（默认 256 或环境变量 EVAL_MAX_TOKENS）",
     )
     return parser.parse_args()
@@ -146,7 +156,12 @@ def main() -> None:
                     ],
                     max_tokens=args.max_tokens,
                 )
-                result["prediction"] = response.choices[0].message.content
+                if not response.choices:
+                    raise ValueError("Model returned no choices.")
+                answer = response.choices[0].message.content
+                if not isinstance(answer, str) or not answer.strip():
+                    raise ValueError("Model returned no text answer.")
+                result["prediction"] = answer
                 result["status"] = "ok"
             except Exception as exc:
                 result["prediction"] = ""
