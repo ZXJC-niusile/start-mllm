@@ -11,6 +11,20 @@ def validate_record(record: dict[str, Any], *, dataset_dir: Path) -> dict[str, A
     user_turns = sum(1 for item in messages if item.get("role") == "user")
     assistant_turns = sum(1 for item in messages if item.get("role") == "assistant")
     has_empty_text = False
+    content_images = []
+
+    # 训练读取 content 中的图片，而非仅用于索引的顶层 image。
+    for i, message in enumerate(messages):
+        for j, content in enumerate(message.get("content", [])):
+            if content.get("type") == "image":
+                content_path = Path(content["image"])
+                if not content_path.is_absolute():
+                    content_path = dataset_dir / content_path
+                content_images.append({
+                    "field": f"messages[{i}].content[{j}].image",
+                    "image": str(content_path),
+                    "image_exists": content_path.is_file(),
+                })
 
     for message in messages:
         for content in message.get("content", []):
@@ -21,6 +35,7 @@ def validate_record(record: dict[str, Any], *, dataset_dir: Path) -> dict[str, A
         "id": record.get("id", ""),
         "image": str(image_path),
         "image_exists": image_path.is_file(),
+        "content_images": content_images,
         "message_count": len(messages),
         "user_turns": user_turns,
         "assistant_turns": assistant_turns,
@@ -186,7 +201,14 @@ def main() -> None:
                 if errors:
                     sft_errors.extend(errors)
                     continue  # 结构未通过时，不能交给假设字段有效的基础统计函数。
-            summaries.append(validate_record(record, dataset_dir=dataset_dir))
+            summary = validate_record(record, dataset_dir=dataset_dir)
+            summaries.append(summary)
+            if args.check_sft_format:
+                for image in summary["content_images"]:
+                    if not image["image_exists"]:
+                        sft_errors.append(
+                            f"[{line_num}] {image['field']} 图片不存在或不是文件: {image['image']}"
+                        )
 
     # 基础校验结果
     print(json.dumps(summaries, ensure_ascii=False, indent=2))
