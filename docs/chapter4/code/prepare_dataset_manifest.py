@@ -11,6 +11,20 @@ def validate_record(record: dict[str, Any], *, dataset_dir: Path) -> dict[str, A
     user_turns = sum(1 for item in messages if item.get("role") == "user")
     assistant_turns = sum(1 for item in messages if item.get("role") == "assistant")
     has_empty_text = False
+    content_images = []
+
+    # 训练读取 content 中的图片，而非仅用于索引的顶层 image。
+    for i, message in enumerate(messages):
+        for j, content in enumerate(message.get("content", [])):
+            if content.get("type") == "image":
+                content_path = Path(content["image"])
+                if not content_path.is_absolute():
+                    content_path = dataset_dir / content_path
+                content_images.append({
+                    "field": f"messages[{i}].content[{j}].image",
+                    "image": str(content_path),
+                    "image_exists": content_path.is_file(),
+                })
 
     for message in messages:
         for content in message.get("content", []):
@@ -21,6 +35,7 @@ def validate_record(record: dict[str, Any], *, dataset_dir: Path) -> dict[str, A
         "id": record.get("id", ""),
         "image": str(image_path),
         "image_exists": image_path.is_file(),
+        "content_images": content_images,
         "message_count": len(messages),
         "user_turns": user_turns,
         "assistant_turns": assistant_turns,
@@ -34,6 +49,10 @@ def validate_sft_format(record: dict[str, Any], line_num: int) -> list[str]:
     返回错误列表，空列表表示通过。
     """
     errors: list[str] = []
+    if not isinstance(record, dict):
+        return [f"[{line_num}] 每条样本必须是 JSON 对象"]
+    if not isinstance(record.get("image", ""), str):
+        errors.append(f"[{line_num}] 'image' 必须是路径字符串（纯文本样本可为空）")
 
     # 1. 必须有 id
     if not record.get("id"):
@@ -58,6 +77,9 @@ def validate_sft_format(record: dict[str, Any], line_num: int) -> list[str]:
         if role not in ("user", "assistant", "system"):
             errors.append(f"[{line_num}] messages[{i}].role 非法: '{role}'，必须为 user/assistant/system")
 
+        if role == "system" and i != 0:
+            errors.append(f"[{line_num}] system 消息只允许出现在开头")
+
         content = msg.get("content")
         if not content:
             errors.append(f"[{line_num}] messages[{i}] 缺少 'content'")
@@ -81,16 +103,18 @@ def validate_sft_format(record: dict[str, Any], line_num: int) -> list[str]:
                 text_val = part.get("text")
                 if text_val is None:
                     errors.append(f"[{line_num}] messages[{i}].content[{j}] text 类型缺少 'text' 值")
-                elif not str(text_val).strip():
+                elif not isinstance(text_val, str):
+                    errors.append(f"[{line_num}] messages[{i}].content[{j}] text 值必须是字符串")
+                elif not text_val.strip():
                     errors.append(f"[{line_num}] messages[{i}].content[{j}] text 值为空")
 
             if part_type == "image":
                 img_val = part.get("image")
-                if not img_val:
-                    errors.append(f"[{line_num}] messages[{i}].content[{j}] image 类型缺少 'image' 路径")
+                if not isinstance(img_val, str) or not img_val.strip():
+                    errors.append(f"[{line_num}] messages[{i}].content[{j}] image 类型需要非空路径字符串")
 
     # 4. 轮次校验：必须以 user 开始，user/assistant 交替（允许 system 在开头）
-    non_system = [m for m in messages if m.get("role") != "system"]
+    non_system = [m for m in messages if isinstance(m, dict) and m.get("role") != "system"]
     if non_system:
         if non_system[0].get("role") != "user":
             errors.append(f"[{line_num}] 非 system 消息必须以 user 开始")
@@ -102,10 +126,16 @@ def validate_sft_format(record: dict[str, Any], line_num: int) -> list[str]:
                     f"期望 {expected}"
                 )
 
+    if not non_system or non_system[-1].get("role") != "assistant":
+        errors.append(f"[{line_num}] SFT 样本必须以 assistant 回复结束")
+
     # 5. user 消息中至少包含一个 image 或 text
     for i, msg in enumerate(messages):
-        if msg.get("role") == "user":
+        if isinstance(msg, dict) and msg.get("role") == "user":
             content = msg.get("content", [])
+            if not isinstance(content, list):
+                continue
+            content = [part for part in content if isinstance(part, dict)]
             has_image = any(c.get("type") == "image" for c in content)
             has_text = any(c.get("type") == "text" and str(c.get("text", "")).strip() for c in content)
             if not has_image and not has_text:
@@ -113,8 +143,11 @@ def validate_sft_format(record: dict[str, Any], line_num: int) -> list[str]:
 
     # 6. assistant 消息中至少包含一个 text
     for i, msg in enumerate(messages):
-        if msg.get("role") == "assistant":
+        if isinstance(msg, dict) and msg.get("role") == "assistant":
             content = msg.get("content", [])
+            if not isinstance(content, list):
+                continue
+            content = [part for part in content if isinstance(part, dict)]
             has_text = any(c.get("type") == "text" and str(c.get("text", "")).strip() for c in content)
             if not has_text:
                 errors.append(f"[{line_num}] messages[{i}] (assistant) 缺少有效 text")
@@ -156,10 +189,26 @@ def main() -> None:
             line = line.strip()
             if not line:
                 continue
-            record = json.loads(line)
-            summaries.append(validate_record(record, dataset_dir=dataset_dir))
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as exc:
+                if not args.check_sft_format:
+                    raise
+                sft_errors.append(f"[{line_num}] JSON 解析失败: {exc.msg}")
+                continue
             if args.check_sft_format:
-                sft_errors.extend(validate_sft_format(record, line_num))
+                errors = validate_sft_format(record, line_num)
+                if errors:
+                    sft_errors.extend(errors)
+                    continue  # 结构未通过时，不能交给假设字段有效的基础统计函数。
+            summary = validate_record(record, dataset_dir=dataset_dir)
+            summaries.append(summary)
+            if args.check_sft_format:
+                for image in summary["content_images"]:
+                    if not image["image_exists"]:
+                        sft_errors.append(
+                            f"[{line_num}] {image['field']} 图片不存在或不是文件: {image['image']}"
+                        )
 
     # 基础校验结果
     print(json.dumps(summaries, ensure_ascii=False, indent=2))
@@ -178,7 +227,8 @@ def main() -> None:
             print("  4. content 必须是列表，元素 type 必须是 text 或 image")
             print("  5. user/assistant 必须交替出现，以 user 开始")
             print("  6. user 消息至少包含一个 image 或 text")
-            print("  7. assistant 消息至少包含一个 text")
+            print("  7. assistant 消息至少包含一个 text，且样本以 assistant 结束")
+            raise SystemExit(1)
         else:
             print("SFT 格式校验：✅ 全部通过（共 {} 条）".format(len(summaries)))
 
