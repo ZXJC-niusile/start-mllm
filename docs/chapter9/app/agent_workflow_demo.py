@@ -104,7 +104,7 @@ class MultimodalAgent:
         return final_response
 
 
-def main() -> None:
+def main() -> int:
     raw_path = os.getenv("IMAGE_PATH", "").strip()
     question = os.getenv("QUESTION", "请分析这张图片，并给出下一步建议。")
     try:
@@ -118,7 +118,8 @@ def main() -> None:
             "question": question,
         }
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result.get("status") == "ok" else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

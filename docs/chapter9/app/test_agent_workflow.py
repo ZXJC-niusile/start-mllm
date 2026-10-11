@@ -169,7 +169,7 @@ class AgentTests(unittest.TestCase):
             with self.subTest(module=module.__name__):
                 stream = io.StringIO()
                 with patch.object(module, 'resolve_image_path', side_effect=FileNotFoundError('missing image')), contextlib.redirect_stdout(stream):
-                    module.main()
+                    self.assertEqual(module.main(), 1)
                 self.assertEqual(json.loads(stream.getvalue())['status'], 'error')
 
     def test_main_reports_api_error_as_json(self):
@@ -177,8 +177,15 @@ class AgentTests(unittest.TestCase):
             agent, _ = agent_with(RuntimeError('offline API failure'), cls=cls)
             stream = io.StringIO()
             with patch.object(module, 'resolve_image_path', return_value=self.image), patch.object(module, cls.__name__, return_value=agent), contextlib.redirect_stdout(stream):
-                module.main()
+                self.assertEqual(module.main(), 1)
             self.assertEqual(json.loads(stream.getvalue())['error'], 'offline API failure')
+
+    def test_main_success_and_empty_question_exit_codes(self):
+        for module, cls in ((v1, v1.MultimodalAgent), (v2, v2.MultimodalAgentV2)):
+            for question, expected in (('Explain', 0), (' ', 1)):
+                agent, _ = agent_with(Message('Answer'), cls=cls)
+                with patch.dict('os.environ', {'QUESTION': question}), patch.object(module, 'resolve_image_path', return_value=self.image), patch.object(module, cls.__name__, return_value=agent), contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(module.main(), expected)
 
     def test_v1_rejects_missing_perception(self):
         agent, _ = agent_with(Message(None), cls=v1.MultimodalAgent)
