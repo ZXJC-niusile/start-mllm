@@ -23,9 +23,15 @@
 
 ### 1. 安装依赖
 
+本地路线需要 `torch` 与 `torchvision` 配套安装；`qwen-vl-utils` 在导入时就会使用 `torchvision`，即使只处理图片也不能省略。本章依赖范围为 `torch>=2.3,<2.7` 与 `torchvision>=0.18,<0.22`；请按 [PyTorch 官方历史版本安装表](https://pytorch.org/get-started/previous-versions/) 选择与系统、驱动适配的同一组 wheel（例如 `torch 2.6.0` 对应 `torchvision 0.21.0`），不要单独升级其中一个包。已有 GPU 环境也应先检查版本范围，避免安装时意外替换现有的 PyTorch。
+
 ```bash
-pip install -r docs/chapter7/code/requirements.txt
+python -m pip install -r docs/chapter7/code/requirements.txt
+python -m pip check
+python -c "import torch, torchvision; from qwen_vl_utils import process_vision_info; print(torch.__version__, torchvision.__version__, torch.cuda.is_available())"
 ```
+
+最后一条只是依赖导入与 CUDA 可见性检查，不下载模型，也不保证显存足够。若导入失败，先解决缺包或 `torch` / `torchvision` 构建不匹配，再加载模型。
 
 ### 2. 准备模型和图片
 
@@ -89,6 +95,12 @@ python docs/chapter7/code/transformers_chat.py
 2. 用 `chat.completions` 方式提交图文消息
 
 ### 1. 运行方式
+
+若只走 API 路线，可跳过上面的本地模型依赖，单独安装：
+
+```bash
+python -m pip install -r docs/chapter7/code/requirements-api.txt
+```
 
 `openai_compatible_client.py` 与 `transformers_chat.py` 共用 `docs/learner_paths.py`：**不设置 `IMAGE_PATH` 时**，若已生成第五章占位图，会自动使用 `docs/chapter5/code/images/sample_ui.png`；也可显式指定任意路径（支持在仓库根目录或章节目录下运行）。
 
