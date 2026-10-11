@@ -29,6 +29,22 @@ def _resolve_image_path(raw: str, *, dataset_path: Path) -> Path:
     return p
 
 
+def _validate_image_output_path(dataset_path: Path, output_path: Path) -> None:
+    """输出也不能覆盖 JSONL 引用的源图片，包含符号链接与硬链接别名。"""
+    with dataset_path.open("r", encoding="utf-8") as f:
+        for lineno, line in enumerate(f, 1):
+            if not line.strip():
+                continue
+            raw = json.loads(line).get("image", "")
+            if not raw:
+                continue
+            image_path = _resolve_image_path(raw, dataset_path=dataset_path)
+            if (image_path.resolve() == output_path.resolve()
+                    or (output_path.exists() and image_path.samefile(output_path))):
+                raise ValueError(f"line {lineno}: 输出文件不能覆盖输入图片 {image_path}；"
+                                 "请为 --output 指定另一个文件")
+
+
 def _ensure_dataset_images_exist(dataset_path: Path) -> None:
     """在发请求前检查 JSONL 引用的图片是否存在，避免跑到一半才 FileNotFound。"""
     base = dataset_path.parent
@@ -112,6 +128,7 @@ def main() -> None:
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
 
     _ensure_dataset_images_exist(dataset_path)
+    _validate_image_output_path(dataset_path, output_path)
 
     from openai import OpenAI
 
