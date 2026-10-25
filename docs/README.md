@@ -15,6 +15,7 @@
 | 基础篇总览 | [基础篇总览](./foundation/README.md) |
 | 第 00 章 | [环境、命令行与 Python 项目基础](./foundation/00-环境命令行与Python项目基础.md) |
 | 第 01 章 | [向量、矩阵与张量基础](./foundation/01-向量矩阵与张量基础.md) |
+| 第 02 章 | [NumPy 基础](./foundation/02-NumPy基础.md) |
 
 ## 入门导航
 
