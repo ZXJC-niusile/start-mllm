@@ -1,5 +1,6 @@
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -155,7 +156,19 @@ def validate_sft_format(record: dict[str, Any], line_num: int) -> list[str]:
     return errors
 
 
+def _try_utf8_stdio() -> None:
+    """Use UTF-8 for Chinese diagnostics when stdout/stderr are redirected."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8")
+            except (OSError, ValueError, AttributeError):
+                pass
+
+
 def main() -> None:
+    _try_utf8_stdio()
     parser = argparse.ArgumentParser(
         description="校验多模态 SFT 风格 JSONL（图片是否存在、轮次、SFT 格式合规性等）。"
     )
