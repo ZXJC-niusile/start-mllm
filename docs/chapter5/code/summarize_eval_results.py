@@ -194,6 +194,14 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def _validate_output_path(input_paths: list[Path], output_path: Path) -> None:
+    """拒绝覆盖任一输入结果，包括符号链接与硬链接别名。"""
+    for input_path in input_paths:
+        if (input_path.resolve() == output_path.resolve()
+                or (output_path.exists() and input_path.samefile(output_path))):
+            raise ValueError("报告输出不能与任一输入结果文件相同；请为 --write 指定另一个文件")
+
+
 def main() -> None:
     _try_utf8_stdio()
     args = parse_args()
@@ -201,6 +209,11 @@ def main() -> None:
     for path in paths:
         if not path.exists():
             raise FileNotFoundError(path)
+
+    out_path = (args.write or "").strip()
+    output_path = Path(out_path).expanduser().resolve() if out_path else None
+    if output_path is not None:
+        _validate_output_path(paths, output_path)
 
     labels = list(args.label)
     default_labels = [path.stem for path in paths]
@@ -221,9 +234,8 @@ def main() -> None:
             chunks.append(_format_markdown_table(labels, stats_list))
 
     report = "".join(chunks)
-    out_path = (args.write or "").strip()
-    if out_path:
-        Path(out_path).expanduser().resolve().write_text(report, encoding="utf-8")
+    if output_path is not None:
+        output_path.write_text(report, encoding="utf-8")
     else:
         print(report, end="")
 
