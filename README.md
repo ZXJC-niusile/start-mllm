@@ -84,6 +84,7 @@
 | [05 Embedding 与 Tokenizer](./docs/foundation/05-Embedding与Tokenizer.md) | 理解文本编码、嵌入、序列长度与对话模板 | ✅ |
 | [06 Transformer 基础](./docs/foundation/06-Transformer基础.md) | 理解注意力、位置、残差与自回归生成 | ✅ |
 | [07 CV 基础与 ViT](./docs/foundation/07-CV基础与ViT.md) | 理解像素预处理、局部特征与视觉 token | ✅ |
+| [08 CLIP 与图文对齐](./docs/foundation/08-CLIP与图文对齐.md) | 理解双塔、对比目标与检索能力边界 | ✅ |
 
 ### 入门导航
 

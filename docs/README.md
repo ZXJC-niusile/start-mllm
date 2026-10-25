@@ -21,6 +21,7 @@
 | 第 05 章 | [Embedding 与 Tokenizer](./foundation/05-Embedding与Tokenizer.md) |
 | 第 06 章 | [Transformer 基础](./foundation/06-Transformer基础.md) |
 | 第 07 章 | [CV 基础与 ViT](./foundation/07-CV基础与ViT.md) |
+| 第 08 章 | [CLIP 与图文对齐](./foundation/08-CLIP与图文对齐.md) |
 
 ## 入门导航
 
