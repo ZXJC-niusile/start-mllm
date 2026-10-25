@@ -20,7 +20,6 @@ API_KEY = os.getenv("OPENAI_API_KEY", "EMPTY")
 MODEL_ID = os.getenv("MODEL_ID", "your-vlm")
 IMAGE_PATH = os.getenv("IMAGE_PATH", "").strip()
 QUESTION = os.getenv("QUESTION", "请详细描述这张图，并说明你判断的依据。")
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", "256"))
 
 
 def to_data_url(image_path: str) -> str:
@@ -34,8 +33,15 @@ def to_data_url(image_path: str) -> str:
     return f"data:{mime_type};base64,{encoded}"
 
 
-def main() -> None:
+def main() -> int:
     try:
+        try:
+            max_tokens = int(os.getenv("MAX_TOKENS", "256"))
+        except ValueError:
+            raise ValueError("MAX_TOKENS must be a positive integer.") from None
+        if max_tokens <= 0:
+            raise ValueError("MAX_TOKENS must be a positive integer.")
+
         client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
         image_file = str(resolve_image_path(IMAGE_PATH or None, script_file=__file__))
         data_url = to_data_url(image_file)
@@ -51,13 +57,20 @@ def main() -> None:
                     ],
                 }
             ],
-            max_tokens=MAX_TOKENS,
+            max_tokens=max_tokens,
         )
 
-        print(response.choices[0].message.content)
+        if not response.choices:
+            raise ValueError("Model returned no choices.")
+        answer = response.choices[0].message.content
+        if not isinstance(answer, str) or not answer.strip():
+            raise ValueError("Model returned no text answer.")
+        print(answer)
+        return 0
     except Exception as exc:
-        print(f"Request failed: {exc}")
+        print(f"Request failed: {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
