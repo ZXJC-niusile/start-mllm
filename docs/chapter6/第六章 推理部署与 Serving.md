@@ -58,18 +58,15 @@
 
 ### 3. 用专门的推理服务框架
 
-面向高吞吐或生产环境的推理引擎。对多模态模型，2024-2026 年主流选择如下：
+面向服务化的推理引擎示例如下。论文说明方法来源；具体模型支持、参数与硬件要求以所用版本的官方文档为准。下列命令是配置入口，不是跨版本可运行性或性能保证：
 
 | 引擎 | 核心特点 | 多模态支持 | 最小启动命令示例 |
 |---|---|---|---|
-| **vLLM 0.6+** | PagedAttention + V1 引擎，吞吐极高 | Qwen2.5-VL、LLaVA、InternVL 等 | `vllm serve Qwen/Qwen2.5-VL-3B-Instruct --dtype bfloat16` |
-| **SGLang** | RadixAttention，多轮对话缓存复用极强 | Qwen2.5-VL、LLaVA 等 | `python -m sglang.launch_server --model Qwen/Qwen2.5-VL-3B-Instruct` |
-| **LMDeploy** | PyTorch 引擎，国产模型（Qwen、InternLM）适配好 | 原生支持 Qwen-VL、InternVL 系列 | `lmdeploy serve api_server Qwen/Qwen2.5-VL-3B-Instruct` |
+| **vLLM** | [PagedAttention](https://arxiv.org/abs/2309.06180)：分页管理 KV Cache | Qwen2.5-VL、LLaVA、InternVL 等 | `vllm serve Qwen/Qwen2.5-VL-3B-Instruct --dtype bfloat16` |
+| **SGLang** | [RadixAttention](https://arxiv.org/abs/2312.07104)：复用共享前缀的 KV Cache | Qwen2.5-VL、LLaVA 等 | `python -m sglang.launch_server --model-path Qwen/Qwen2.5-VL-3B-Instruct` |
+| **LMDeploy** | [官方部署工具](https://lmdeploy.readthedocs.io/en/latest/multi_modal/qwen2_5_vl.html)，按模型选择支持的后端 | 原生支持 Qwen-VL、InternVL 系列 | `lmdeploy serve api_server Qwen/Qwen2.5-VL-3B-Instruct` |
 
-**选型建议**：
-- 追求极致吞吐 → vLLM
-- 多轮对话场景多 → SGLang（缓存复用优势大）
-- 国产模型为主 → LMDeploy（中文文档和适配更完善）
+**选型建议**：先核对目标模型与多模态接口支持，再在相同硬件、输入图像、上下文长度和并发下测首 token 延迟、吞吐与峰值显存。PagedAttention 和 RadixAttention 是机制说明，不能推出某引擎在所有场景下最快。
 
 这类方案适合：
 
@@ -274,6 +271,12 @@ flowchart LR
 - 对教程项目来说，最稳的路线是先单机脚本，再服务封装，再做路由和优化。
 
 **第七章**的最小脚本会把本章说的请求日志、耗时与异常变得可触摸；跑通后再对照本章第二节的链路图，更容易分清延迟和错误来自预处理、协议还是模型本身。
+
+## 原始论文与部署文档
+
+- **论文**：Kwon 等，*Efficient Memory Management for Large Language Model Serving with PagedAttention*（2023，[原文](https://arxiv.org/abs/2309.06180)）。对应第二节的 KV Cache 分页管理；原论文的实验不构成当前 VLM 版本的性能保证。
+- **论文**：Zheng 等，*SGLang: Efficient Execution of Structured Language Model Programs*（2023/2024，[原文](https://arxiv.org/abs/2312.07104)）。重点看 RadixAttention 的前缀复用与适用负载。
+- **官方实现文档**：[vLLM 多模态输入](https://docs.vllm.ai/en/stable/features/multimodal_inputs/)、[SGLang 视觉接口](https://docs.sglang.io/docs/basic_usage/openai_api_vision)、[LMDeploy Qwen2.5-VL 部署](https://lmdeploy.readthedocs.io/en/latest/multi_modal/qwen2_5_vl.html)。查输入 schema、模型支持及启动选项，避免把论文与软件版本说明混用。
 
 ## 十五、章节跳转
 
