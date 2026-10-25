@@ -68,6 +68,8 @@ python docs/chapter7/code/transformers_chat.py
 
 ### 4. 这个脚本其实在做什么
 
+本章默认模型的架构来源是 [Qwen2.5-VL 技术报告](https://arxiv.org/abs/2502.13923)；实际调用细节需对照 [官方模型卡](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct) 与 [Transformers 多模态模板文档](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal)。
+
 脚本的关键步骤其实就四步：
 
 1. 加载模型和 processor
@@ -225,6 +227,12 @@ python docs/chapter7/code/openai_compatible_client.py
 本章不是为了让你记住某个模型命令，而是为了把“多模态推理链路”变具体。只要你能读懂这里的代码，后面无论是做 Demo、做 Agent 还是做服务封装，难度都会明显下降。
 
 你在本章摸清的 `messages` 与模板，会直接决定 **第八章** `Gradio` 发出的请求体是否与 **第五章** 评测脚本一致；下面把同一套调用嵌进第六章所说的“应用服务”层。
+
+## 原始论文与深入学习
+
+- **模型论文**：*Qwen2.5-VL Technical Report*（2025，[原文](https://arxiv.org/abs/2502.13923)）。先读模型架构与动态分辨率，再对照本章 processor 的输入。
+- **量化延伸论文**：[GPTQ](https://arxiv.org/abs/2210.17323)（2022）与 [AWQ](https://arxiv.org/abs/2306.00978)（2023）。分别了解后训练量化与激活感知权重量化；这是“量化部署”的进一步阅读，不表示本章脚本已实现它们，或任意 VLM 的视觉组件都能直接量化。
+- **接口文档，不是论文**：[Transformers 多模态模板](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal) 与 [OpenAI 图像输入指南](https://developers.openai.com/api/docs/guides/images-vision)。选择与你实际 SDK、服务端和端点一致的示例；“兼容接口”不保证支持全部字段。
 
 ## 十一、章节跳转
 
