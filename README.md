@@ -79,6 +79,7 @@
 | [00 环境、命令行与 Python 项目基础](./docs/foundation/00-环境命令行与Python项目基础.md) | 搞懂路径、终端、pip、conda、环境变量与常见报错 | ✅ |
 | [01 向量、矩阵与张量基础](./docs/foundation/01-向量矩阵与张量基础.md) | 手算点积与矩阵乘法，用 CPU 脚本检查视觉特征的形状与批量投影 | ✅ |
 | [02 NumPy 基础](./docs/foundation/02-NumPy基础.md) | 理解数组类型、索引、广播、归约与轴变换 | ✅ |
+| [03 PyTorch 张量与自动求导](./docs/foundation/03-PyTorch张量与自动求导.md) | 理解设备、计算图、链式法则与梯度累积 | ✅ |
 
 ### 入门导航
 
