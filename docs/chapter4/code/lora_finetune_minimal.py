@@ -75,91 +75,90 @@ def load_jsonl(path: Path) -> list[dict]:
     return samples
 
 
-def format_for_qwen25vl(sample: dict) -> dict:
-    """
-    把仓库标准 JSONL 格式转成 Qwen2.5-VL 的 conversations 格式。
-    输入 sample 结构：
-        {"image": "path/to/img.jpg", "messages": [{"role": "user", "content": [...]}, ...]}
-    输出：
-        {"image": PIL.Image, "conversations": [...]}
-    """
-    img_path = sample.get("image", "")
-    if not Path(img_path).is_absolute():
-        # 尝试相对 JSONL 文件目录解析
-        base = DATA_PATH.parent
-        img_path = base / img_path
+def format_for_qwen25vl(sample: dict) -> dict | None:
+    """保留角色与图像占位；图片相对 DATA_PATH 解析，纯文本样本不打开图片。"""
+    messages = []
+    image_count = 0
+    for index, message in enumerate(sample.get("messages", [])):
+        role = message["role"]
+        if role not in ("system", "user", "assistant") or (role == "system" and index != 0):
+            raise ValueError("仅支持开头的 system 和交替的 user/assistant 消息")
+        parts = []
+        for part in message["content"]:
+            if part["type"] == "text":
+                parts.append({"type": "text", "text": part["text"]})
+            elif part["type"] == "image" and role == "user":
+                path = Path(part["image"])
+                if not path.is_absolute():
+                    path = DATA_PATH.parent / path
+                if not path.is_file():
+                    return None
+                with Image.open(path) as image:
+                    parts.append({"type": "image", "image": image.convert("RGB")})
+                image_count += 1
+            else:
+                raise ValueError("本示例只支持文本回复与 user 消息中的图片")
+        if role == "assistant" and not any(p["type"] == "text" and p["text"].strip() for p in parts):
+            raise ValueError("assistant 回复不能为空")
+        messages.append({"role": role, "content": parts})
+    turns = [m["role"] for m in messages if m["role"] != "system"]
+    if not turns or len(turns) % 2 or turns != ["user", "assistant"] * (len(turns) // 2):
+        raise ValueError("训练样本必须包含完整、交替的 user/assistant 轮次")
+    if sample.get("image") and not image_count:
+        raise ValueError("顶层 image 不会自动插入占位；请在 user.content 中声明图片")
+    return {"messages": messages}
 
-    if not Path(img_path).exists():
-        return None  # 标记为无效样本，由 SimpleMultimodalDataset 过滤
-    image = Image.open(img_path).convert("RGB")
 
-    conversations = []
-    for msg in sample.get("messages", []):
-        role = msg["role"]
-        content_parts = msg.get("content", [])
-        text_parts = []
-        for part in content_parts:
-            if part.get("type") == "text":
-                text_parts.append(part["text"])
-        conversations.append({
-            "from": "human" if role == "user" else "gpt",
-            "value": "\n".join(text_parts),
-        })
-
-    return {"image": image, "conversations": conversations}
+def _images_in(messages):
+    return [part["image"] for message in messages for part in message["content"]
+            if part["type"] == "image"]
 
 
-def collate_fn(batch, processor, device):
-    """
-    把一批样本拼成模型输入（含 labels）。
-    这里用最简单的方式：单条独立编码，后续可用更高效的 batch 策略。
-    """
-    texts = []
-    images = []
-    # 预计算每条样本中 assistant 回复的起始字符位置（用于构造 labels）
-    assistant_start_chars = []
-    for item in batch:
-        conv = item["conversations"]
-        text = ""
-        asst_start = 0
-        for c in conv:
-            prefix = "User: " if c["from"] == "human" else "Assistant: "
-            if c["from"] == "gpt" and asst_start == 0:
-                asst_start = len(text)
-            text += prefix + c["value"] + "\n"
-        texts.append(text.strip())
-        images.append(item["image"])
-        assistant_start_chars.append(asst_start)
+def _encode_prefix(processor, messages, *, generation_prompt=False):
+    """边界也走多模态 processor，计入展开后的视觉 token。"""
+    text = processor.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=generation_prompt,
+    )
+    return processor(
+        text=[text], images=_images_in(messages) or None,
+        add_special_tokens=False, truncation=False,
+    )["input_ids"][0]
 
-    # processor 处理图文输入
+
+def collate_fn(batch, processor):
+    """只监督每轮 assistant；边界无法对齐或过长时停止，避免静默错训。"""
+    texts = [processor.apply_chat_template(
+        item["messages"], tokenize=False, add_generation_prompt=False,
+    ) for item in batch]
+    images = [image for item in batch for image in _images_in(item["messages"])]
+    # 不截断视觉 token；Trainer 负责把 CPU batch 移到训练设备。
     inputs = processor(
-        text=texts,
-        images=images,
-        return_tensors="pt",
-        padding=True,
-        truncation=True,
-        max_length=MAX_SEQ_LEN,
-    ).to(device)
-
-    # 构造 labels：复制 input_ids，将非 assistant 回复部分 mask 为 -100
-    # 这样 Trainer 只在 assistant 回复上计算 loss，不会学习"复读"用户问题
-    # 注意：此 labels 构造为简化示例。由于 processor（含图像占位 token）和
-    # tokenizer（纯文本）的分词结果可能存在偏移，生产环境请使用 chat_template
-    # + tokenizer 的 return_offsets_mapping 精确计算边界。
+        text=texts, images=images or None, return_tensors="pt", padding=True,
+        add_special_tokens=False, truncation=False,
+    )
     labels = inputs["input_ids"].clone()
-    pad_token_id = getattr(processor.tokenizer, "pad_token_id", None)
-    for i, asst_start in enumerate(assistant_start_chars):
-        # 通过 tokenizer 找到 assistant 回复在 token 序列中的起始位置
-        prompt_enc = processor.tokenizer(
-            texts[i][:asst_start], return_tensors=None, truncation=True, max_length=MAX_SEQ_LEN
-        )
-        prompt_len = len(prompt_enc["input_ids"])
-        # 将 prompt 部分（含 image tokens）mask 为 -100
-        labels[i, :prompt_len] = -100
-        # 将 padding 部分 mask 为 -100
-        if pad_token_id is not None:
-            labels[i, inputs["input_ids"][i] == pad_token_id] = -100
-
+    for i, item in enumerate(batch):
+        positions = [j for j, active in enumerate(inputs["attention_mask"][i].tolist()) if active]
+        token_ids = [inputs["input_ids"][i, j].item() for j in positions]
+        if len(token_ids) > MAX_SEQ_LEN:
+            raise ValueError(f"样本含 {len(token_ids)} tokens，超过 MAX_SEQ_LEN={MAX_SEQ_LEN}；"
+                             "请缩短文本、降低图片分辨率或调整预算，不能直接截断视觉 token")
+        labels[i, :] = -100
+        supervised = 0
+        messages = item["messages"]
+        for turn, message in enumerate(messages):
+            if message["role"] != "assistant":
+                continue
+            prompt_ids = _encode_prefix(processor, messages[:turn], generation_prompt=True)
+            through_ids = _encode_prefix(processor, messages[:turn + 1])
+            start, end = len(prompt_ids), len(through_ids)
+            if not (start < end and token_ids[:start] == prompt_ids and token_ids[:end] == through_ids):
+                raise ValueError("chat template/tokenizer 前缀不一致，无法安全定位 assistant 标签")
+            for j in positions[start:end]:
+                labels[i, j] = inputs["input_ids"][i, j]
+                supervised += 1
+        if not supervised:
+            raise ValueError("样本没有可监督的 assistant token")
     inputs["labels"] = labels
     return inputs
 
@@ -219,6 +218,8 @@ def main():
     raw_samples = load_jsonl(DATA_PATH)
     print(f"Total samples: {len(raw_samples)}")
     dataset = SimpleMultimodalDataset(raw_samples)
+    if not len(dataset):
+        raise ValueError("没有有效训练样本；请先检查 JSONL 与图片路径")
 
     # 4. 训练参数
     training_args = TrainingArguments(
@@ -238,7 +239,7 @@ def main():
 
     # 5. 自定义 data collator（简化版）
     def data_collator(batch):
-        return collate_fn(batch, processor, device)
+        return collate_fn(batch, processor)
 
     # 6. Trainer
     trainer = Trainer(
@@ -264,13 +265,13 @@ def main():
         print(f"Peak GPU memory: {max_mem:.2f} GB")
         print(f"\n若显存不足，可尝试：")
         print(f"  - 减小 LORA_R（当前 {LORA_R}）→ 8")
-        print(f"  - 减小 MAX_SEQ_LEN（当前 {MAX_SEQ_LEN}）→ 256")
+        print(f"  - 缩短文本或降低输入图片分辨率（token 上限 {MAX_SEQ_LEN}，不自动截断）")
         print(f"  - 启用 QLoRA（把模型加载改为 4-bit）")
 
     print("\n========== 训练完成 ==========")
     print("下一步建议：")
     print("  1. 用 merge_and_unload() 合并 LoRA 权重，或直接加载 adapter 推理")
-    print("  2. 在同样的 100 条数据上做推理，对比微调前后的输出差异")
+    print("  2. 用训练样本检查是否学会拟合；另留未参与训练的图片评估泛化")
     print("  3. 把评测 JSONL（第五章格式）跑一遍，量化收益")
 
 
