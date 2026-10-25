@@ -17,6 +17,7 @@
 | 第 01 章 | [向量、矩阵与张量基础](./foundation/01-向量矩阵与张量基础.md) |
 | 第 02 章 | [NumPy 基础](./foundation/02-NumPy基础.md) |
 | 第 03 章 | [PyTorch 张量与自动求导](./foundation/03-PyTorch张量与自动求导.md) |
+| 第 04 章 | [神经网络与学习过程](./foundation/04-神经网络与学习过程.md) |
 
 ## 入门导航
 
