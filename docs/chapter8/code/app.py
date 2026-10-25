@@ -65,8 +65,11 @@ def ask_vlm(image_path: str, question: str, task_mode: str) -> tuple[str, str]:
             ],
             max_tokens=512,
         )
+        answer = response.choices[0].message.content
+        if not isinstance(answer, str) or not answer.strip():
+            raise ValueError("接口未返回文本回答，请检查模型是否支持当前图文请求。")
         elapsed = time.perf_counter() - start
-        return response.choices[0].message.content, f"状态：已完成，模式={task_mode}，耗时={elapsed:.2f}s"
+        return answer, f"状态：已完成，模式={task_mode}，耗时={elapsed:.2f}s"
     except Exception as exc:
         elapsed = time.perf_counter() - start
         return f"请求失败：{exc}", f"状态：失败，模式={task_mode}，耗时={elapsed:.2f}s"
