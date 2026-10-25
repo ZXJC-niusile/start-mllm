@@ -3,6 +3,7 @@
 - <strong>基础篇</strong>
   - [基础篇总览](./foundation/README.md)
   - [00 环境、命令行与 Python 项目基础](./foundation/00-环境命令行与Python项目基础.md)
+  - [01 向量、矩阵与张量基础](./foundation/01-向量矩阵与张量基础.md)
 
 - <strong>入门导航</strong>
   - [前言](./前言.md)
