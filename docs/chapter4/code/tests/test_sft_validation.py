@@ -1,6 +1,7 @@
 """Standard-library regressions for malformed SFT input and CLI failure status."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -21,11 +22,11 @@ def valid_record():
 
 
 class ValidationTests(unittest.TestCase):
-    def run_cli(self, text):
+    def run_cli(self, text, env=None):
         with tempfile.TemporaryDirectory() as directory:
             dataset = Path(directory) / "data.jsonl"
             dataset.write_text(text, encoding="utf-8")
-            return subprocess.run([sys.executable, str(PATH), "--dataset", str(dataset), "--check-sft-format"], capture_output=True, text=True, encoding="utf-8")
+            return subprocess.run([sys.executable, str(PATH), "--dataset", str(dataset), "--check-sft-format"], capture_output=True, text=True, encoding="utf-8", env=env)
 
     def test_malformed_shapes_report_line_errors(self):
         invalid = [None, [], {"id": "bad", "messages": None}, {"id": "bad", "messages": "bad"}]
@@ -67,6 +68,13 @@ class ValidationTests(unittest.TestCase):
         record = valid_record()
         record["messages"].insert(1, {"role": "system", "content": [{"type": "text", "text": "rules"}]})
         self.assertTrue(validator.validate_sft_format(record, 1))
+
+    def test_cli_uses_utf8_with_legacy_stdio_encoding(self):
+        env = {**os.environ, "PYTHONIOENCODING": "cp936", "PYTHONUTF8": "0"}
+        result = self.run_cli(json.dumps(valid_record()), env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("全部通过", result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_valid_bundled_records_still_pass(self):
         fixture = PATH.with_name("sample_multimodal_sft.jsonl").read_text(encoding="utf-8")
