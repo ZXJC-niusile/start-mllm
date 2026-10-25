@@ -2,6 +2,7 @@
 生成评测 JSONL 引用的占位图（纯色小图，仅用于跑通脚本与目录结构）。
 
 学习者后续应换成真实截图；有图之后 eval 才有业务意义。
+重复运行会保留已有路径（包括你替换的真实图片）；只创建缺少的占位图。
 纯标准库，无需 pip 额外依赖。
 """
 
@@ -26,7 +27,12 @@ def save_solid_png(path: Path, width: int, height: int, r: int, g: int, b: int) 
     ihdr = struct.pack("!2I5B", width, height, 8, 2, 0, 0, 0)
     png = signature + _png_chunk(b"IHDR", ihdr) + _png_chunk(b"IDAT", compressed) + _png_chunk(b"IEND", b"")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(png)
+    # 排他创建，避免重复运行覆盖真实图片，也不跟随已有符号链接。
+    try:
+        with path.open("xb") as output:
+            output.write(png)
+    except FileExistsError:
+        print(f"Skipped existing path: {path}")
 
 
 def main() -> None:
@@ -35,7 +41,7 @@ def main() -> None:
     save_solid_png(root / "sample_ui.png", 320, 200, 230, 240, 255)
     save_solid_png(root / "sample_error.png", 320, 200, 255, 220, 220)
     save_solid_png(root / "sample_chart.png", 400, 240, 220, 235, 220)
-    print(f"OK: wrote placeholder PNGs under {root}")
+    print(f"OK: placeholder setup finished under {root} (existing paths kept)")
 
 
 if __name__ == "__main__":
