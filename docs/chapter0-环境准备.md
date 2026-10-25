@@ -61,13 +61,13 @@ python --version   # 应显示 3.10.x
 python -c "import torch; print(torch.cuda.is_available())"
 ```
 
-输出 `True` 且显存 ≥ 8GB，即可跑第七章的本地推理示例（Qwen2.5-VL-3B FP16 精度下约需 6~8GB）。
+输出 `True` 只说明当前 PyTorch 能访问 CUDA 设备，不保证显存足够。第七章本地示例的资源需求还受权重精度、图像尺寸、输入与输出长度、batch 和注意力实现影响；8GB 是否足够需在固定配置下实测，下面的估算不能替代运行验证。
 
 只有当上一条命令输出 `True` 时，再继续执行下面这条，否则会直接报错：
 
 ```bash
 # 仅在 CUDA 可用时执行：检查 GPU 型号与显存
-python -c "import torch; print(torch.cuda.get_device_name(0)); print(torch.cuda.get_device_properties(0).total_memory / 1024**3, 'GB')"
+python -c "import torch; print(torch.cuda.get_device_name(0)); print(torch.cuda.get_device_properties(0).total_memory / 1024**3, 'GiB')"
 ```
 
 如果输出 `False`，有三种可能：
@@ -96,23 +96,25 @@ cu121 表示 CUDA 12.1，仅为示例。实际安装时请到 https://pytorch.or
 
 ### 显存估算公式（粗略）
 
-```
-总显存 ≈ 模型参数显存 + KV Cache 显存 + 视觉编码器显存 + 激活值/碎片
+```text
+总显存 ≈ 全模型权重显存 + KV Cache 显存 + 运行时开销
 
 其中：
-  模型参数显存 ≈ 参数量(B) × 每参数字节数（FP16=2 字节, INT4≈0.5 字节）
-  KV Cache 显存 ≈ 2 × 层数 × hidden_dim × 序列长度 × batch_size × 每参数字节数
-  # 2 = Key + Value 两组缓存；对 Qwen2.5-VL-3B：层数≈36，hidden_dim≈2048
-  视觉编码器显存 ≈ ViT 参数量 × 每参数字节数
+  全模型权重显存 ≈ 总参数量 × 每权重元素字节数（FP16/BF16=2 字节）
+  KV Cache 显存 ≈ 2 × 层数 × KV头数 × 每头维度 × 总序列长度 × batch_size × 每缓存元素字节数
+  # 2 = Key + Value；总序列长度包括视觉/文本输入和已生成 token
+  # GQA（分组查询注意力）中 KV头数可少于 Query头数，不能直接用 hidden_size 替代 KV头数 × 每头维度
+  # 全模型权重已包含视觉编码器；运行时开销另含视觉/语言激活、临时工作区、框架开销与显存碎片
 ```
 
-**举个例子**：Qwen2.5-VL-3B（FP16）
-- 模型参数：3B × 2 字节/参数 ≈ 6GB
-- 视觉编码器：约 0.3~0.6GB
-- KV Cache（单张图 1000 token）：约 0.5~1GB
-- 总计：约 7~8GB
+以上 KV 公式估算标准稠密缓存张量；量化权重/缓存还可能有额外元数据，静态预分配或滑动窗口缓存需按实际实现估算。
 
-如果换成 7B 模型，或输入高分辨率大图，显存轻松突破 16GB。
+**举个例子**：Qwen2.5-VL-3B-Instruct
+- [官方配置](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/37eefda6797047d24d5d08184aea3e097f3f8a50/config.json)为 36 层、`hidden_size=2048`、16 个 Query 头、2 个 KV 头，每头维度为 2048 ÷ 16 = 128。
+- `batch_size=1`、总序列长度 1000、FP16 缓存时：2 × 36 × 2 × 128 × 1000 × 2 = **36,864,000 bytes ≈ 35.2 MiB**。这仅是 KV 张量，**不是总显存**。
+- [官方权重索引](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/main/model.safetensors.index.json)的 `total_size=7,509,245,952` bytes，即 BF16 全模型权重约 **7.51 GB（6.99 GiB）**，已含视觉部分；不能把名称中的“3B”直接当作全模型精确参数量。
+
+本节是**参考估算，尚待固定环境实测**，不保证 8GB 可运行，也不能据此断言一定无法运行。验证时请记录依赖版本、模型版本、图像尺寸、`max_pixels`、`max_new_tokens`、batch、dtype、注意力实现，以及峰值 `allocated` / `reserved` 显存。更大模型、更长序列和更高图像分辨率通常会增加资源需求。
 
 ### 国产与 Mac 硬件速览
 
