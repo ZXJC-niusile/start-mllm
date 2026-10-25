@@ -1,6 +1,6 @@
 # 07 CV 基础与 ViT：从像素到视觉 token
 
-前置：[06 Transformer 基础](./06-Transformer基础.md)。CV 是 computer vision，即计算机视觉。本章建立图像预处理、空间信息和视觉编码器的基本知识，训练实作、习题和答案留待后续。
+前置：[06 Transformer 基础](./06-Transformer基础.md)。CV 是 computer vision，即计算机视觉。本章从像素与预处理出发，解释 ViT 如何构造并处理视觉 token。
 
 文本有 tokenizer，图像却不是先变成一段自然语言描述再交给模型。视觉编码器直接处理数值图像，形成一组特征；这些特征是否保留文字、位置和细节，会影响后续 MLLM 能回答什么。
 
