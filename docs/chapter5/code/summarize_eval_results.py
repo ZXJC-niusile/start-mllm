@@ -47,6 +47,7 @@ def summarize(rows: list[dict]) -> dict:
     err = n - ok
     ref_ok = [r for r in rows if (r.get("reference") or "").strip() and r.get("status") == "ok"]
     hits = sum(1 for r in ref_ok if _rough_ref_hit(r))
+    ref_total = sum(1 for r in rows if (r.get("reference") or "").strip())
     ref_den = len(ref_ok)
     hit_rate = (hits / ref_den) if ref_den else None
 
@@ -80,6 +81,8 @@ def summarize(rows: list[dict]) -> dict:
         "ok": ok,
         "err": err,
         "ref_den": ref_den,
+        "ref_total": ref_total,
+        "end_to_end_hit_rate": (hits / ref_total) if ref_total else None,
         "rough_hits": hits,
         "rough_hit_rate": hit_rate,
         "latency_mean": mean_t,
@@ -100,6 +103,11 @@ def _format_text_section(label: str, s: dict) -> str:
         )
     else:
         lines.append("无 reference 或无可评的 ok 行：粗粒度命中率跳过（可只做耗时与错误率）。")
+    if s["ref_total"]:
+        lines.append(
+            f"端到端参考命中（失败计未命中）: {s['rough_hits']}/{s['ref_total']} "
+            f"({s['end_to_end_hit_rate']:.1%})"
+        )
     if s["latency_mean"] is not None:
         lines.append(f"耗时(s): mean={s['latency_mean']:.3f}, median={s['latency_median']:.3f}")
     if s["by_tag"]:
@@ -127,11 +135,16 @@ def _format_markdown_table(names: list[str], stats: list[dict]) -> str:
     row("status=error", [str(s["err"]) for s in stats])
     row("错误率", [f"{s['err'] / s['n']:.1%}" if s["n"] else "n/a" for s in stats])
     row(
-        "粗粒度参考命中率",
+        "粗粒度参考命中率（仅含 reference 的 ok 行）",
         [
             f"{s['rough_hit_rate']:.1%}" if s["rough_hit_rate"] is not None else "n/a"
             for s in stats
         ],
+    )
+    row("成功参考样本 / 全部参考样本", [f"{s['ref_den']}/{s['ref_total']}" for s in stats])
+    row(
+        "端到端参考命中率（失败计未命中）",
+        [f"{s['end_to_end_hit_rate']:.1%}" if s["end_to_end_hit_rate"] is not None else "n/a" for s in stats],
     )
     row(
         "平均耗时(s)",
