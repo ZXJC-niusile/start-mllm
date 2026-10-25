@@ -75,7 +75,7 @@
 
 | 章节名 | 简介 | 状态 |
 | ---- | ---- | ---- |
-| [基础篇总览](./docs/foundation/README.md) | 为只有 Python 基础的学习者补齐最低工程和模型基础 | 🚧 |
+| [基础篇总览](./docs/foundation/README.md) | 为只有 Python 基础的学习者补齐最低工程和模型基础 | ✅ |
 | [00 环境、命令行与 Python 项目基础](./docs/foundation/00-环境命令行与Python项目基础.md) | 搞懂路径、终端、pip、conda、环境变量与常见报错 | ✅ |
 | [01 向量、矩阵与张量基础](./docs/foundation/01-向量矩阵与张量基础.md) | 手算点积与矩阵乘法，用 CPU 脚本检查视觉特征的形状与批量投影 | ✅ |
 | [02 NumPy 基础](./docs/foundation/02-NumPy基础.md) | 理解数组类型、索引、广播、归约与轴变换 | ✅ |
@@ -85,6 +85,7 @@
 | [06 Transformer 基础](./docs/foundation/06-Transformer基础.md) | 理解注意力、位置、残差与自回归生成 | ✅ |
 | [07 CV 基础与 ViT](./docs/foundation/07-CV基础与ViT.md) | 理解像素预处理、局部特征与视觉 token | ✅ |
 | [08 CLIP 与图文对齐](./docs/foundation/08-CLIP与图文对齐.md) | 理解双塔、对比目标与检索能力边界 | ✅ |
+| [09 多模态大模型入口](./docs/foundation/09-多模态大模型入口.md) | 串联视觉编码器、连接器与语言模型 | ✅ |
 
 ### 入门导航
 
