@@ -11,6 +11,7 @@
   - [06 Transformer 基础](./foundation/06-Transformer基础.md)
   - [07 CV 基础与 ViT](./foundation/07-CV基础与ViT.md)
   - [08 CLIP 与图文对齐](./foundation/08-CLIP与图文对齐.md)
+  - [09 多模态大模型入口](./foundation/09-多模态大模型入口.md)
 
 - <strong>入门导航</strong>
   - [前言](./前言.md)
