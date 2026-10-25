@@ -83,6 +83,7 @@
 | [04 神经网络与学习过程](./docs/foundation/04-神经网络与学习过程.md) | 理解前向计算、损失、参数更新与泛化 | ✅ |
 | [05 Embedding 与 Tokenizer](./docs/foundation/05-Embedding与Tokenizer.md) | 理解文本编码、嵌入、序列长度与对话模板 | ✅ |
 | [06 Transformer 基础](./docs/foundation/06-Transformer基础.md) | 理解注意力、位置、残差与自回归生成 | ✅ |
+| [07 CV 基础与 ViT](./docs/foundation/07-CV基础与ViT.md) | 理解像素预处理、局部特征与视觉 token | ✅ |
 
 ### 入门导航
 
