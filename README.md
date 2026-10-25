@@ -63,7 +63,7 @@
 
 📖 **在线地址**：[https://datawhalechina.github.io/start-mllm/](https://datawhalechina.github.io/start-mllm/)
 
-建议首次阅读直接从 [前言](./docs/前言.md) 开始。
+先读[前言](./docs/前言.md)选择路线：系统学习从[基础篇 00～09](./docs/foundation/README.md)开始，再进入正文；体验 API 可先读第七章，再用第五章检查结果。LLM 基础速通用于复习，专题用于按问题查阅。
 
 > 需要更系统的前置补课？推荐 Datawhale 社区课程：[thorough-pytorch](https://github.com/datawhalechina/thorough-pytorch) · [base-llm](https://github.com/datawhalechina/base-llm) · [self-llm](https://github.com/datawhalechina/self-llm)
 
