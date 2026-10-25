@@ -81,6 +81,7 @@
 | [02 NumPy 基础](./docs/foundation/02-NumPy基础.md) | 理解数组类型、索引、广播、归约与轴变换 | ✅ |
 | [03 PyTorch 张量与自动求导](./docs/foundation/03-PyTorch张量与自动求导.md) | 理解设备、计算图、链式法则与梯度累积 | ✅ |
 | [04 神经网络与学习过程](./docs/foundation/04-神经网络与学习过程.md) | 理解前向计算、损失、参数更新与泛化 | ✅ |
+| [05 Embedding 与 Tokenizer](./docs/foundation/05-Embedding与Tokenizer.md) | 理解文本编码、嵌入、序列长度与对话模板 | ✅ |
 
 ### 入门导航
 
