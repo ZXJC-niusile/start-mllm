@@ -5,6 +5,7 @@
   - [00 环境、命令行与 Python 项目基础](./foundation/00-环境命令行与Python项目基础.md)
   - [01 向量、矩阵与张量基础](./foundation/01-向量矩阵与张量基础.md)
   - [02 NumPy 基础](./foundation/02-NumPy基础.md)
+  - [03 PyTorch 张量与自动求导](./foundation/03-PyTorch张量与自动求导.md)
 
 - <strong>入门导航</strong>
   - [前言](./前言.md)
