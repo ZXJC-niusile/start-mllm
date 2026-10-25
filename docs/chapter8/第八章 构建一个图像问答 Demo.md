@@ -1,6 +1,5 @@
 # 第八章 构建一个图像问答 Demo
 
-> **实战篇**（第 5～10 章）：评测、部署、推理与 Demo、Agent、学习路线收束。
 
 这一章把上一章的“命令行推理”升级成“可交互 Demo”。很多项目真正的起点都在这里：先把能力做成一个稳定、可演示、可反复验证的界面。
 
@@ -17,7 +16,7 @@
 
 如果连一个小 Demo 都经常答错、答慢、答偏，那直接上复杂系统通常只会把问题放大。
 
-**内容提示**：Demo 是**实战篇**里承上启下的一环——对上承接第五章“同一批 JSONL 能否在界面里复现”，对下给第六章“真实链路里的上传、超时、重试”一个最小试验场。别把它只当成 UI 练习。
+本章实现上传、调用和展示。请求失败时显示异常，不代表已实现第六章讨论的服务级超时、重试和日志系统；需要这些能力时再扩展应用层。
 
 ## 二、本章代码说明
 
@@ -43,7 +42,7 @@ pip install -r docs/chapter8/code/requirements.txt
 
 ## 四、配置环境变量
 
-配置可以参考 `.env.example`（`KEY=value` 行格式各系统相同）。若你**不用 `.env`**、而在终端里临时注入变量：Windows PowerShell 用 `$env:KEY="value"`（cmd 用 `set KEY=value`），Linux / macOS 用 `export KEY=value`，详见 [前言](../前言.md)。
+配置可以参考 `.env.example`（`KEY=value` 行格式各系统相同）。若你**不用 `.env`**、而在终端里临时注入变量：Windows PowerShell 用 `$env:KEY="value"`（cmd 用 `set KEY=value`），Linux / macOS 用 `export KEY=value`，详见[基础篇 00](../foundation/00-环境命令行与Python项目基础.md)。
 
 ```bash
 OPENAI_BASE_URL=http://127.0.0.1:8000/v1
