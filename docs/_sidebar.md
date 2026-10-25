@@ -8,6 +8,7 @@
   - [03 PyTorch 张量与自动求导](./foundation/03-PyTorch张量与自动求导.md)
   - [04 神经网络与学习过程](./foundation/04-神经网络与学习过程.md)
   - [05 Embedding 与 Tokenizer](./foundation/05-Embedding与Tokenizer.md)
+  - [06 Transformer 基础](./foundation/06-Transformer基础.md)
 
 - <strong>入门导航</strong>
   - [前言](./前言.md)
