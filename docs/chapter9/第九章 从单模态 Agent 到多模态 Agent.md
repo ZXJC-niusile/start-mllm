@@ -64,6 +64,8 @@ flowchart LR
 
 这四个模块是本教程的工程拆分，不是一篇论文规定的唯一 Agent 架构。与“推理—行动—观察”交替相关的方法可读 [ReAct 原论文](https://arxiv.org/abs/2210.03629)；本章有限步骤的示例并不等于复现完整 ReAct，也不代表已实现持久记忆。
 
+<a id="screenshot-agent-workflow"></a>
+
 ## 四、一个典型案例：截图助手 Agent
 
 假设用户给你一张报错截图，并说：

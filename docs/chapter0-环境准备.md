@@ -20,6 +20,8 @@
 
 API 实践另需支持图像输入的可用接口、密钥与调用额度。**本地推理**建议理解张量的形状、设备与精度，并核对模型兼容性和硬件资源；**训练与微调是选学内容**，还需要 PyTorch 训练基础、数据与计算资源。
 
+<a id="get-tutorial-code"></a>
+
 ## 二、获取教程代码
 
 ```bash
@@ -82,6 +84,8 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 ```
 
 cu121 表示 CUDA 12.1，仅为示例。实际安装时请到 https://pytorch.org/get-started/locally/ 根据你的 CUDA 版本选择对应的命令。
+
+<a id="hardware-memory-budget"></a>
 
 ## 五、多模态硬件排雷与显存估算
 
