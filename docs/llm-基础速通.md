@@ -280,7 +280,7 @@ batch、optimizer step、epoch 与学习率的定义见[基础篇 04](./foundati
 
 ## 五、可选实验：用反例检查因果约束
 
-完整脚本：[llm_causal_walkthrough.py](./foundation/code/llm_causal_walkthrough.py)。它实现本章的取嵌入、Q/K/V 投影、mask、softmax、词表预测头、shifted labels、损失和一次采样。只使用 Python 标准库，不会联网或下载模型。
+完整脚本：[llm_causal_walkthrough.py](https://github.com/datawhalechina/start-mllm/blob/main/docs/foundation/code/llm_causal_walkthrough.py)。它实现本章的取嵌入、Q/K/V 投影、mask、softmax、词表预测头、shifted labels、损失和一次采样。只使用 Python 标准库，不会联网或下载模型。
 
 从仓库根目录运行：
 
@@ -371,7 +371,7 @@ print(top_p([0.60, 0.25, 0.15], 0.90)[0])  # [0, 1, 2]
 
 #### A. 检查 GPU 是否可用
 
-本节是 **PyTorch / Transformers 读码卡**，不另建一条下载 7B 模型的运行路线。A 和 E 只需已安装 PyTorch，不下载模型；完整本地推理请按[第七章](./chapter7/第七章%20动手跑通你的第一个%20VLM.md)的环境说明运行其中的 [transformers_chat.py](./chapter7/code/transformers_chat.py)。
+本节是 **PyTorch / Transformers 读码卡**，不另建一条下载 7B 模型的运行路线。A 和 E 只需已安装 PyTorch，不下载模型；完整本地推理请按[第七章](./chapter7/第七章%20动手跑通你的第一个%20VLM.md)的环境说明运行其中的 [transformers_chat.py](https://github.com/datawhalechina/start-mllm/blob/main/docs/chapter7/code/transformers_chat.py)。
 
 ```python
 import torch

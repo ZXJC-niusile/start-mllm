@@ -269,5 +269,5 @@ python docs/chapter9/app/agent_workflow_demo.py
 
 - 上一篇：[第八章 构建一个图像问答 Demo](../chapter8/第八章%20构建一个图像问答%20Demo.md)
 - 下一篇：[第十章 学习路线与开源项目实战建议](../chapter10/第十章%20学习路线与开源项目实战建议.md)
-- 配套代码：[app 目录](./app)（仓库路径 `docs/chapter9/app`）
+- 配套代码：[app 目录](https://github.com/datawhalechina/start-mllm/tree/main/docs/chapter9/app)（仓库路径 `docs/chapter9/app`）
 - 延伸专题：[Extra01 OCR 与文档理解专题](../Extra-Chapter/Extra01-OCR与文档理解专题.md)

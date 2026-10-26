@@ -249,4 +249,4 @@ python docs/chapter7/code/openai_compatible_client.py
 
 - 上一篇：[第六章 推理部署与 Serving](../chapter6/第六章%20推理部署与%20Serving.md)
 - 下一篇：[第八章 构建一个图像问答 Demo](../chapter8/第八章%20构建一个图像问答%20Demo.md)
-- 配套代码：[code 目录](./code)（仓库路径 `docs/chapter7/code`）
+- 配套代码：[code 目录](https://github.com/datawhalechina/start-mllm/tree/main/docs/chapter7/code)（仓库路径 `docs/chapter7/code`）
