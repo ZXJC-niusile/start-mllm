@@ -165,5 +165,5 @@ python docs/chapter8/code/app.py
 
 - 上一篇：[第七章 动手跑通你的第一个 VLM](../chapter7/第七章%20动手跑通你的第一个%20VLM.md)
 - 下一篇：[第九章 从单模态 Agent 到多模态 Agent](../chapter9/第九章%20从单模态%20Agent%20到多模态%20Agent.md)
-- 配套代码：[code 目录](./code)（仓库路径 `docs/chapter8/code`）
+- 配套代码：[code 目录](https://github.com/datawhalechina/start-mllm/tree/main/docs/chapter8/code)（仓库路径 `docs/chapter8/code`）
 - 延伸专题：[Extra01 OCR 与文档理解专题](../Extra-Chapter/Extra01-OCR与文档理解专题.md)
