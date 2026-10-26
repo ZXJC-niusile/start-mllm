@@ -102,6 +102,8 @@ python docs/chapter8/code/app.py
 
 这已经覆盖了大量多模态应用的最小主链路。
 
+<a id="demo-structured-extraction"></a>
+
 ## 七、从现有模板到结构化字段抽取
 
 第五节的四种模式共用同一条请求链路，区别在于 `TASK_PROMPTS` 中的提示词。当前版本已经显示请求状态和耗时，但没有多图输入、多轮历史、结果持久化或 JSON 校验。扩展前先确定任务需要哪一项能力。

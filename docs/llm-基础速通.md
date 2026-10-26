@@ -207,6 +207,8 @@ exp(logits/0.5) = [1²,2²,3²,4²] = [1,4,9,16]
 
 本地 Transformers 可用 `do_sample=False, num_beams=1` 作为贪心起点；此时不需调采样温度和 top-p。采样时才设置正温度，不要把某些 API 的 `temperature=0` 约定直接复制到本地采样代码。没有通用 OCR 参数配方，应固定评测样本，一次只改一项。跨硬件或服务版本也不应承诺输出绝对一致。参见 [Transformers 生成参数](https://huggingface.co/docs/transformers/v4.51.1/en/main_classes/text_generation)和[核采样原论文](https://arxiv.org/abs/1904.09751)。
 
+<a id="kv-cache-generation"></a>
+
 ### 3.3 自回归、prefill 与 decode
 
 正常的逐 token 生成把本次选择追加到输入，继续预测，直到结束标记或长度上限。本例若在“我 爱”后采样到“猫”，下一次就用“我 爱 猫”；若选到 `<eos>`，则按本例约定结束。实际模型的结束 token 与停止规则由模型和服务配置决定。
@@ -218,7 +220,7 @@ exp(logits/0.5) = [1²,2²,3²,4²] = [1,4,9,16]
 
 因此，第一个生成 token 被选出时，它自己的 K/V 尚未必写入缓存；通常要到下一次前向处理这个 token 时才写入。缓存保存的是中间 K/V，不是答案文本，也不是模型重新训练后的参数。**使用缓存仍须读取历史 K/V 做注意力，并非每一步都是与上下文长度无关的常数工作量。** 参见 [Transformers 缓存计算说明](https://huggingface.co/docs/transformers/v4.51.1/en/cache_explanation)。
 
-标准稠密全上下文 KV 缓存的容量随缓存序列长度线性增长；具体取决于层数、KV 头数（如 GQA）、每头维度、batch 与缓存精度。缓存是否超过权重显存没有统一答案；滑动窗口等缓存策略也有不同边界。公式见 [Chapter 0 显存估算](./chapter0-环境准备.md#五多模态硬件排雷与显存估算)。
+标准稠密全上下文 KV 缓存的容量随缓存序列长度线性增长；具体取决于层数、KV 头数（如 GQA）、每头维度、batch 与缓存精度。缓存是否超过权重显存没有统一答案；滑动窗口等缓存策略也有不同边界。公式见 [Chapter 0 显存估算](./chapter0-环境准备.md#hardware-memory-budget)。
 
 ## 四、从概率到损失：训练为什么必须对齐下一 token
 
