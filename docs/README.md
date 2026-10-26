@@ -1,6 +1,6 @@
 # 阅读导航
 
-> 此页面为在线文档的导航首页，仓库介绍与项目说明请见根目录 [README](../README.md)。
+> 此页面为在线文档的导航首页，仓库介绍与项目说明请见根目录 [README](https://github.com/datawhalechina/start-mllm/blob/main/README.md)。
 
 在线阅读首页已调整为 [前言](./前言.md)。本页保留为辅助导航，方便你快速跳到不同分册。
 
