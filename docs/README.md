@@ -57,5 +57,5 @@
 
 | 类型 | 入口 |
 | --- | --- |
-| 扩展阅读 | [正文与 Extra 穿插顺序](./扩展阅读.md) |
-| Extra-Chapter | [专题总览](./Extra-Chapter/README.md) |
+| 扩展阅读 | [按场景选专题与查阅来源](./扩展阅读.md) |
+| Extra-Chapter | [专题目录](./Extra-Chapter/README.md) |
