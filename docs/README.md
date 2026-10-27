@@ -1,12 +1,6 @@
-# 阅读导航
+# 阅读目录
 
-> 此页面为在线文档的导航首页，仓库介绍与项目说明请见根目录 [README](https://github.com/datawhalechina/start-mllm/blob/main/README.md)。
-
-在线阅读首页已调整为 [前言](./前言.md)。本页保留为辅助导航，方便你快速跳到不同分册。
-
-## 首次阅读
-
-只有 Python 基础、希望系统理解原理时，从下方基础篇 00～09 顺序阅读，再进入正文第一至四章。希望先体验图文接口时，按[前言的最小闭环](./前言.md#quick-api-route)进入第七章与第五章。LLM 基础速通用于复习，专题用于按问题查阅。
+阅读顺序见[前言](./前言.md)，项目范围与贡献方式见[仓库 README](https://github.com/datawhalechina/start-mllm/blob/main/README.md)。本页列出全部章节入口。
 
 ## 基础篇
 
