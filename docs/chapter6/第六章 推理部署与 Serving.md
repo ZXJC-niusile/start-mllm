@@ -52,7 +52,7 @@ flowchart LR
 
 ### 3. 自建后端时选择推理服务框架
 
-面向服务化的推理引擎示例如下。论文说明方法来源；具体模型支持、参数与硬件要求以所用版本的官方文档为准。下列命令是配置入口，不是跨版本可运行性或性能保证：
+下表列出三种推理引擎及启动示例。运行前，按所安装版本的官方文档确认模型支持、启动参数和硬件要求：
 
 | 引擎 | 核心特点 | 多模态支持 | 最小启动命令示例 |
 |---|---|---|---|
@@ -117,7 +117,7 @@ flowchart LR
 
 日志无需默认复制全部用户图片和问题。根据复现需要保存必要内容，避免记录密钥；涉及个人或业务数据时明确访问范围与保留期限。仅记录文件名也可能不足以区分图片版本，可以关联内容摘要或受控数据记录。
 
-客户端总耗时不能自动拆出服务端视觉编码时间。远端 API 没有提供阶段指标时，应标为不可观测，不用估计值填充日志。第五章脚本提供请求结果和耗时记录，尚不等于完整的服务监控系统。
+客户端总耗时不能自动拆出服务端视觉编码时间。远端 API 没有提供阶段指标时，应标为不可观测，不用估计值填充日志。第五章脚本记录请求结果和总耗时；排队、视觉编码等阶段耗时需要服务端额外记录。
 
 ## 六、从单模型到路由
 
@@ -150,7 +150,7 @@ flowchart LR
 
 ## 原始论文与部署文档
 
-- **论文**：Kwon 等，*Efficient Memory Management for Large Language Model Serving with PagedAttention*（2023，[原文](https://arxiv.org/abs/2309.06180)）。对应第二节的 KV Cache 分页管理；原论文的实验不构成当前 VLM 版本的性能保证。
+- **论文**：Kwon 等，*Efficient Memory Management for Large Language Model Serving with PagedAttention*（2023，[原文](https://arxiv.org/abs/2309.06180)）。结合第二节理解 KV Cache 的分页管理，以及它怎样减少缓存内存浪费。
 - **论文**：Zheng 等，*SGLang: Efficient Execution of Structured Language Model Programs*（2023/2024，[原文](https://arxiv.org/abs/2312.07104)）。重点看 RadixAttention 的前缀复用与适用负载。
 - **官方实现文档**：[vLLM 多模态输入](https://docs.vllm.ai/en/stable/features/multimodal_inputs/)、[SGLang 视觉接口](https://docs.sglang.io/docs/basic_usage/openai_api_vision)、[LMDeploy Qwen2.5-VL 部署](https://lmdeploy.readthedocs.io/en/latest/multi_modal/qwen2_5_vl.html)。查输入 schema、模型支持及启动选项，避免把论文与软件版本说明混用。
 
