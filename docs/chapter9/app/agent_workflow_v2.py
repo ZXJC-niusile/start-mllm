@@ -17,9 +17,7 @@
     python agent_workflow_v2.py
 """
 
-import base64
 import json
-import mimetypes
 import os
 import sys
 from pathlib import Path
@@ -31,20 +29,12 @@ _DOCS = Path(__file__).resolve().parents[2]
 if str(_DOCS) not in sys.path:
     sys.path.insert(0, str(_DOCS))
 from learner_paths import resolve_image_path
+from learner_io import to_data_url
 
 
 load_dotenv()
 
 
-def to_data_url(image_path: str) -> str:
-    path = Path(image_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Image not found: {path}")
-    mime_type, _ = mimetypes.guess_type(path.name)
-    if mime_type is None:
-        mime_type = "image/jpeg"
-    encoded = base64.b64encode(path.read_bytes()).decode("utf-8")
-    return f"data:{mime_type};base64,{encoded}"
 
 
 # ========== Tool Schema 定义 ==========
