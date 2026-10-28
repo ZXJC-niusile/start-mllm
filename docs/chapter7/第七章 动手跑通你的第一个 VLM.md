@@ -71,7 +71,7 @@ export QUESTION=请详细描述这张图，并指出其中最重要的视觉元�
 python docs/chapter7/code/transformers_chat.py
 ```
 
-### 4. 这个脚本其实在做什么
+### 4. 脚本流程
 
 本章默认模型的架构来源是 [Qwen2.5-VL 技术报告](https://arxiv.org/abs/2502.13923)；实际调用细节需对照 [官方模型卡](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct) 与 [Transformers 多模态模板文档](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal)。
 
