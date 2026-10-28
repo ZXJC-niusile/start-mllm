@@ -1,4 +1,4 @@
-# 本地 GPU 推理版（含 PyTorch，约 2~4GB）
+# 本地 GPU 推理版（含 PyTorch）
 torch>=2.3.0,<2.7.0
 # qwen-vl-utils imports torchvision; match the supported torch 2.3-2.6 family.
 torchvision>=0.18.0,<0.22.0

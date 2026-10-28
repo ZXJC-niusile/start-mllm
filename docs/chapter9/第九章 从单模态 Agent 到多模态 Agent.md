@@ -188,7 +188,7 @@ python docs/chapter9/app/agent_workflow_demo.py
 
 ### 关于工具路由的说明（重要）
 
-`agent_workflow_demo.py` 使用**关键字匹配**（`if “报错” in summary`）做工具路由，这是教学简化写法，优点是代码少、好理解；缺点是扩展性差、容易误判。
+`agent_workflow_demo.py` 使用**关键字匹配**（`if "报错" in summary`）做工具路由，这是教学简化写法，优点是代码少、好理解；缺点是扩展性差、容易误判。
 
 要继续学习工具调用协议，可以对照 **`agent_workflow_v2.py`**（演示一轮工具调用）：
 

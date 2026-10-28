@@ -79,11 +79,7 @@ python -c "import torch; print(torch.cuda.get_device_name(0)); print(torch.cuda.
 
 ### PyTorch GPU 版安装（如需）
 
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-cu121 表示 CUDA 12.1，仅为示例。实际安装时请到 https://pytorch.org/get-started/locally/ 根据你的 CUDA 版本选择对应的命令。
+根据操作系统和 GPU 驱动，在 [PyTorch 历史版本安装页](https://pytorch.org/get-started/previous-versions/)选择与第七章约束 `torch>=2.3,<2.7`、`torchvision>=0.18,<0.22` 匹配的一组版本及 CUDA wheel。安装后重新运行上面的 `torch.cuda.is_available()` 检查。
 
 <a id="hardware-memory-budget"></a>
 
@@ -154,7 +150,7 @@ cu121 表示 CUDA 12.1，仅为示例。实际安装时请到 https://pytorch.or
 以 DashScope 为例：
 
 ```bash
-pip install -r docs/chapter7/code/requirements-api.txt   # 不含 torch，仅 50MB
+pip install -r docs/chapter7/code/requirements-api.txt   # 不含 torch
 ```
 
 .env 文件（或环境变量）：
@@ -169,16 +165,16 @@ MODEL_ID=qwen2.5-vl-3b-instruct  # 请以 DashScope 平台最新文档为准
 
 ## 七、本书代码依赖总览
 
-| 章节 | 核心依赖 | 大小 | 说明 |
-|---|---|---|---|
-| 第四章数据校验 | 仅标准库 | 0 | 不依赖 PyTorch |
-| 第五章评测 | openai, pillow | ~50MB | API 方式 |
-| 第七章本地推理 | torch, transformers, pillow | ~3GB | 需 GPU |
-| 第七章 API 推理 | openai, pillow | ~50MB | 无需 GPU |
-| 第八章 Demo | gradio, openai | ~200MB | 无需 GPU |
-| 第九章 Agent | openai, python-dotenv | ~50MB | 无需 GPU |
+| 章节 | 核心依赖 | 说明 |
+|---|---|---|
+| 第四章数据校验 | 仅标准库 | 不依赖 PyTorch |
+| 第五章评测 | openai, python-dotenv | API 方式 |
+| 第七章本地推理 | torch, torchvision, transformers, accelerate, pillow, qwen-vl-utils | 完整约束见该章 requirements.txt |
+| 第七章 API 推理 | openai, python-dotenv | 无需本地 GPU |
+| 第八章 Demo | gradio, openai, python-dotenv | 无需本地 GPU |
+| 第九章 Agent | openai, python-dotenv | 无需本地 GPU |
 
-**建议**：先走 API 路线跑通第七~九章，建立手感后再决定是否本地部署。
+
 
 ## 八、常见问题
 
@@ -201,6 +197,6 @@ A：能。本教程主要会用到 `git clone`、`cd`、`conda create`、`pip in
 - **阅读与 API 路线**：Python 基础 + 能安装依赖、运行脚本；API 另需图文接口、密钥与额度
 - **本地推理路线**：核对模型兼容性和硬件资源，按需补充 PyTorch 张量知识
 - **训练与微调**：选学，另需训练基础、数据与计算资源
-- **推荐顺序**：先 API 跑通 → 建立手感 → 再决定是否本地部署
+
 
 首次学习从[基础篇](./foundation/README.md)开始，再进入[第一章](./chapter1/第一章%20多模态大模型概览.md)。已有基础时，可用 [LLM 基础速通](./llm-基础速通.md)复习。
