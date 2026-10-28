@@ -56,6 +56,9 @@ TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj"
 # ==========================================================
 
 
+from prepare_dataset_manifest import validate_sft_format
+
+
 def load_jsonl(path: Path) -> list[dict]:
     """加载 JSONL，取前 MAX_SAMPLES 条。"""
     samples = []
@@ -72,6 +75,9 @@ def load_jsonl(path: Path) -> list[dict]:
 
 def format_for_qwen25vl(sample: dict) -> dict | None:
     """保留角色与图像占位；图片相对 DATA_PATH 解析，纯文本样本不打开图片。"""
+    errors = validate_sft_format(sample, 1, dataset_dir=DATA_PATH.parent)
+    if errors:
+        raise ValueError("; ".join(errors))
     messages = []
     image_count = 0
     for index, message in enumerate(sample.get("messages", [])):

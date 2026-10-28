@@ -6,6 +6,7 @@ are not needed. The tiny processor expands every image marker to three tokens.
 """
 import ast
 import copy
+import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
@@ -18,7 +19,11 @@ SOURCE = Path(__file__).resolve().parents[1] / "lora_finetune_minimal.py"
 def load_functions():
     tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
     functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
-    namespace = {"Path": Path, "DATA_PATH": SOURCE, "MAX_SEQ_LEN": 512}
+    spec = importlib.util.spec_from_file_location("sft_rules", SOURCE.with_name("prepare_dataset_manifest.py"))
+    rules = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rules)
+    namespace = {"Path": Path, "DATA_PATH": SOURCE, "MAX_SEQ_LEN": 512,
+                 "validate_sft_format": rules.validate_sft_format}
     exec(compile(ast.Module(body=functions, type_ignores=[]), str(SOURCE), "exec"), namespace)
     return namespace
 
@@ -137,7 +142,7 @@ class CollatorTests(unittest.TestCase):
     def test_formatter_keeps_system_and_accepts_text_only(self):
         image_api = Mock()
         self.ns["Image"] = image_api
-        sample = {"image": "", "messages": [message("system", "rules"), message("user", "Q"), message("assistant", "A")]}
+        sample = {"id": "test", "image": "", "messages": [message("system", "rules"), message("user", "Q"), message("assistant", "A")]}
         self.assertEqual(self.ns["format_for_qwen25vl"](sample)["messages"], sample["messages"])
         image_api.open.assert_not_called()
         with self.assertRaises(ValueError):
@@ -149,10 +154,11 @@ class CollatorTests(unittest.TestCase):
             (root / "image.png").write_bytes(b"mock image")
             self.ns["DATA_PATH"] = root / "data.jsonl"
             self.ns["Image"] = MagicMock()
-            sample = {"image": "image.png", "messages": [message("user", "Q", "image.png"), message("assistant", "A")]}
+            sample = {"id": "test", "image": "image.png", "messages": [message("user", "Q", "image.png"), message("assistant", "A")]}
             self.assertIsNotNone(self.ns["format_for_qwen25vl"](sample))
             self.ns["Image"].open.assert_called_once_with(root / "image.png")
             sample["messages"][0]["content"][0]["image"] = "missing.png"
+            sample["image"] = "missing.png"
             self.assertIsNone(self.ns["format_for_qwen25vl"](sample))
 
 
