@@ -30,6 +30,7 @@ if str(_DOCS) not in sys.path:
     sys.path.insert(0, str(_DOCS))
 from learner_paths import resolve_image_path
 from learner_io import to_data_url
+from learner_runtime import first_message
 
 
 load_dotenv()
@@ -122,7 +123,7 @@ class MultimodalAgentV2:
             max_tokens=512,
         )
 
-        message = response.choices[0].message
+        message = first_message(response)
         result = {
             "content": message.content,
             "tool_calls": [],
@@ -220,8 +221,8 @@ class MultimodalAgentV2:
             max_tokens=512,
         )
 
-        answer = response.choices[0].message.content
-        if not answer or not answer.strip():
+        answer = first_message(response).content
+        if not isinstance(answer, str) or not answer.strip():
             raise ValueError("Model returned no final answer.")
         return answer
 
@@ -242,7 +243,7 @@ class MultimodalAgentV2:
             final_answer = self.summarize(question, perception, tool_outputs)
         else:
             final_answer = perception["content"]
-            if not final_answer or not final_answer.strip():
+            if not isinstance(final_answer, str) or not final_answer.strip():
                 raise ValueError("Model returned no answer or tool calls.")
 
         return {

@@ -10,6 +10,7 @@ if str(_DOCS) not in sys.path:
     sys.path.insert(0, str(_DOCS))
 from learner_paths import resolve_image_path
 from learner_io import to_data_url
+from learner_runtime import first_message
 from openai import OpenAI
 
 
@@ -47,8 +48,8 @@ class MultimodalAgent:
             ],
             max_tokens=256,
         )
-        summary = response.choices[0].message.content
-        if not summary or not summary.strip():
+        summary = first_message(response).content
+        if not isinstance(summary, str) or not summary.strip():
             raise ValueError("Model returned no perception summary.")
         return summary
 
