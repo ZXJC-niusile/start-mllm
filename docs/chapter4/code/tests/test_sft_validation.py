@@ -76,6 +76,35 @@ class ValidationTests(unittest.TestCase):
         self.assertIn("全部通过", result.stdout)
         self.assertNotIn("Traceback", result.stderr)
 
+    def test_index_and_role_constraints(self):
+        cases = []
+        sample = valid_record()
+        sample["image"] = "undeclared.png"
+        cases.append(sample)
+        sample = valid_record()
+        sample["images"] = ["ignored.png"]
+        cases.append(sample)
+        for role in ("assistant", "system"):
+            sample = valid_record()
+            if role == "system":
+                sample["messages"].insert(0, {"role": "system", "content": [{"type": "text", "text": "rules"}]})
+            msg = next(m for m in sample["messages"] if m["role"] == role)
+            msg["content"].append({"type": "image", "image": "x.png"})
+            cases.append(sample)
+        for sample in cases:
+            with self.subTest(sample=sample):
+                self.assertTrue(validator.validate_sft_format(sample, 1))
+                result = self.run_cli(json.dumps(sample))
+                self.assertEqual(result.returncode, 1)
+                self.assertNotIn("Traceback", result.stderr)
+
+    def test_turn_error_uses_original_message_index(self):
+        sample = valid_record()
+        sample["messages"].insert(0, {"role": "system", "content": [{"type": "text", "text": "rules"}]})
+        sample["messages"].insert(2, {"role": "user", "content": [{"type": "text", "text": "again"}]})
+        errors = validator.validate_sft_format(sample, 9)
+        self.assertTrue(any("messages[2]" in e for e in errors), errors)
+
     def test_valid_bundled_records_still_pass(self):
         fixture = PATH.with_name("sample_multimodal_sft.jsonl").read_text(encoding="utf-8")
         for index, line in enumerate(fixture.splitlines(), 1):
