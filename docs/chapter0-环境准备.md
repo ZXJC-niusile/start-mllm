@@ -167,9 +167,11 @@ MODEL_ID=qwen2.5-vl-3b-instruct  # 请以 DashScope 平台最新文档为准
 
 | 章节 | 核心依赖 | 说明 |
 |---|---|---|
+| 第二章 CLIP 选做 | transformers, pillow, torch | 使用第二章 requirements.txt |
 | 第四章数据校验 | 仅标准库 | 不依赖 PyTorch |
+| 第四章 LoRA 微调 | torch, transformers, accelerate, peft, datasets, pillow | 使用第四章 requirements.txt，需适配 GPU |
 | 第五章评测 | openai, python-dotenv | API 方式 |
-| 第七章本地推理 | torch, torchvision, transformers, accelerate, pillow, qwen-vl-utils | 完整约束见该章 requirements.txt |
+| 第七章本地推理 | torch, torchvision, transformers, accelerate, pillow, qwen-vl-utils, python-dotenv | 完整约束见该章 requirements.txt |
 | 第七章 API 推理 | openai, python-dotenv | 无需本地 GPU |
 | 第八章 Demo | gradio, openai, python-dotenv | 无需本地 GPU |
 | 第九章 Agent | openai, python-dotenv | 无需本地 GPU |
