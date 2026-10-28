@@ -49,7 +49,7 @@ def main():
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-    # 3. 候选文本（与默认票据占位图保持一致，避免示例语义错配）
+    # 3. 候选文本；空白占位图只用于检查运行流程，不能验证票据识别效果
     texts = [
         "a receipt",
         "an invoice",
