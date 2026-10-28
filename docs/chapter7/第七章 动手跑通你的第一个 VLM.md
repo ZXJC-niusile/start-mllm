@@ -32,23 +32,25 @@ python -c "import torch, torchvision; from qwen_vl_utils import process_vision_i
 
 最后一条检查依赖导入与 CUDA 可见性，不下载模型；显存需求见第零章的估算方法。若导入失败，先解决缺包或 `torch` / `torchvision` 构建不匹配，再加载模型。
 
+`MAX_NEW_TOKENS` 未设置或空白时使用 256；其他值必须为正整数，非法配置会在加载模型前报错。
+
 ### 2. 准备模型和图片
 
 你需要准备：
 
-- 一个支持图文对话的视觉语言模型
+- Qwen2.5-VL 系列模型或对应的本地权重目录（脚本固定使用 `Qwen2_5_VLForConditionalGeneration`，不支持直接替换为 Qwen2-VL、InternVL 或 LLaVA）
 - 一张待测试图片（仓库未默认附带示例图；可先在 `docs/chapter5/code` 运行 `python create_placeholder_images.py`，再用路径 `docs/chapter5/code/images/sample_ui.png`——以下命令默认你在**仓库根目录**执行）
 
 脚本默认使用环境变量：
 
-- `MODEL_ID`：模型名称或本地路径
+- `MODEL_ID`：Qwen2.5-VL 模型名称或本地路径
 - `IMAGE_PATH`：图片路径
 - `QUESTION`：用户问题
 
 推荐做法：把 `docs/chapter7/code/.env.example` 复制为同目录 `.env` 后直接改值，脚本会自动读取。若你暂时不想建 `.env`，也可以直接在终端里逐行写：
 
 ```powershell
-$env:MODEL_ID="你的真实模型名"
+$env:MODEL_ID="Qwen/Qwen2.5-VL-3B-Instruct"
 $env:IMAGE_PATH="你的图片路径"
 $env:QUESTION="你想问模型的问题"
 ```

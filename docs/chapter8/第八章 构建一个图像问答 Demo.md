@@ -53,6 +53,8 @@ GRADIO_SERVER_PORT=7860
 DEFAULT_MODE=自由问答
 ```
 
+`GRADIO_SERVER_PORT` 未设置或空白时使用 7860，其他值必须在 1～65535；`DEFAULT_MODE` 未设置或空白时使用“自由问答”，其他值必须是四种已有模式之一。非法配置会在启动页面前报错。
+
 ## 五、运行 Demo
 
 ```bash
