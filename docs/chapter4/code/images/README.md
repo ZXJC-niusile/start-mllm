@@ -6,4 +6,4 @@
 python create_placeholder_images.py
 ```
 
-再运行 `python prepare_dataset_manifest.py`，此时 `image_exists` 应为 `true`。
+再运行 `python prepare_dataset_manifest.py`，含图样本的 `image_exists` 应为 `true`；纯文本样本 `sample-007` 没有图片，该字段为 `false`。
