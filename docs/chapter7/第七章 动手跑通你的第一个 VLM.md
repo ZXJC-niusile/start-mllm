@@ -30,7 +30,7 @@ python -m pip check
 python -c "import torch, torchvision; from qwen_vl_utils import process_vision_info; print(torch.__version__, torchvision.__version__, torch.cuda.is_available())"
 ```
 
-最后一条只是依赖导入与 CUDA 可见性检查，不下载模型，也不保证显存足够。若导入失败，先解决缺包或 `torch` / `torchvision` 构建不匹配，再加载模型。
+最后一条检查依赖导入与 CUDA 可见性，不下载模型；显存需求见第零章的估算方法。若导入失败，先解决缺包或 `torch` / `torchvision` 构建不匹配，再加载模型。
 
 ### 2. 准备模型和图片
 
@@ -75,7 +75,7 @@ python docs/chapter7/code/transformers_chat.py
 
 本章默认模型的架构来源是 [Qwen2.5-VL 技术报告](https://arxiv.org/abs/2502.13923)；实际调用细节需对照 [官方模型卡](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct) 与 [Transformers 多模态模板文档](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal)。
 
-脚本的关键步骤其实就四步：
+脚本包含四个步骤：
 
 1. 加载模型和 processor
 2. 构造图文消息
@@ -187,7 +187,7 @@ python docs/chapter7/code/openai_compatible_client.py
 
 沿用第五节的图片与问题，保持要询问的事实不变，把问题改写得更明确。例如，将“金额是多少？”改为“票据的总金额是多少？请不要把小计或税额当作总金额”。选择与你的图片相符的表述，不在提示词中泄露答案。
 
-保持模型、图片、预处理和可设置的生成参数一致，只改变提示词。保留两组原始输出，并按同一标准检查目标事实是否正确、是否夹带无依据的内容。若要观察输出波动，可在各组内重复相同请求并记录每次结果；固定参数也不保证服务端完全确定。
+保持模型、图片、预处理和可设置的生成参数一致，只改变提示词。保留两组原始输出，并按同一标准检查目标事实是否正确、是否夹带无依据的内容。若要观察输出波动，可在各组内重复相同请求并记录每次结果；服务端实现也可能造成输出波动。
 
 | 条件 | 提示词 | 实际输出 | 图像证据与错误 |
 | --- | --- | --- | --- |
@@ -216,7 +216,7 @@ python docs/chapter7/code/openai_compatible_client.py
 
 - **模型论文**：*Qwen2.5-VL Technical Report*（2025，[原文](https://arxiv.org/abs/2502.13923)）。先读模型架构与动态分辨率，再对照本章 processor 的输入。
 - **量化延伸论文**：[GPTQ](https://arxiv.org/abs/2210.17323)（2022）与 [AWQ](https://arxiv.org/abs/2306.00978)（2023）。分别了解后训练量化与激活感知权重量化；这是“量化部署”的进一步阅读，不表示本章脚本已实现它们，或任意 VLM 的视觉组件都能直接量化。
-- **接口文档，不是论文**：[Transformers 多模态模板](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal) 与 [OpenAI 图像输入指南](https://developers.openai.com/api/docs/guides/images-vision)。选择与你实际 SDK、服务端和端点一致的示例；“兼容接口”不保证支持全部字段。
+- **接口文档**：[Transformers 多模态模板](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal) 与 [OpenAI 图像输入指南](https://developers.openai.com/api/docs/guides/images-vision)。选择与你实际 SDK、服务端和端点一致的示例；逐项核对服务端支持的字段。
 
 ## 十、章节跳转
 
