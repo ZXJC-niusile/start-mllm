@@ -1,10 +1,14 @@
 import argparse
-import base64
 import json
-import mimetypes
 import os
+import sys
 import time
 from pathlib import Path
+
+_DOCS = Path(__file__).resolve().parents[2]
+if str(_DOCS) not in sys.path:
+    sys.path.insert(0, str(_DOCS))
+from learner_io import to_data_url
 
 from dotenv import load_dotenv
 
@@ -21,15 +25,6 @@ def _positive_int(raw: str) -> int:
     return value
 
 
-def to_data_url(image_path: str) -> str:
-    path = Path(image_path)
-    if not path.exists():
-        raise FileNotFoundError(f"Image not found: {path}")
-    mime_type, _ = mimetypes.guess_type(path.name)
-    if mime_type is None:
-        mime_type = "image/jpeg"
-    encoded = base64.b64encode(path.read_bytes()).decode("utf-8")
-    return f"data:{mime_type};base64,{encoded}"
 
 
 def _resolve_image_path(raw: str, *, dataset_path: Path) -> Path:
