@@ -121,7 +121,7 @@ flowchart LR
 
 ## 六、从单模型到路由
 
-首次使用可以直接接已有 API，也可以在本地运行模型。需要让多个应用共享后端时，再考虑服务封装；需要交互界面时接第八章 Demo。不存在所有读者都必须先本地部署再调用 API 的顺序。
+首次使用可以直接接已有 API，也可以在本地运行模型。需要让多个应用共享后端时，再考虑服务封装；需要交互界面时接第八章 Demo。按现有设备与接口条件选择接入方式即可。
 
 只有在任务差异确实需要时，再引入模型路由。例如文档抽取和自然图像描述可能使用不同模型；路由本身也会误判，应保留所选后端与原因。统一接口可以降低应用修改成本，但不同后端的图像预算、工具调用和输出行为仍需分别验证。
 
@@ -133,7 +133,7 @@ flowchart LR
 
 ## 八、章末练习
 
-**动机**：部署章要练的是“问题可定位”；练完你能把延迟、错误率拆到预处理、协议、模型哪一段，并与第五章离线结论对照。
+本节练习调用方式的选择、输入处理与日志设计，用于定位线上请求与离线评测的差异。
 
 ### 必做（约 15 分钟）
 
@@ -152,7 +152,7 @@ flowchart LR
 
 - **论文**：Kwon 等，*Efficient Memory Management for Large Language Model Serving with PagedAttention*（2023，[原文](https://arxiv.org/abs/2309.06180)）。结合第二节理解 KV Cache 的分页管理，以及它怎样减少缓存内存浪费。
 - **论文**：Zheng 等，*SGLang: Efficient Execution of Structured Language Model Programs*（2023/2024，[原文](https://arxiv.org/abs/2312.07104)）。重点看 RadixAttention 的前缀复用与适用负载。
-- **官方实现文档**：[vLLM 多模态输入](https://docs.vllm.ai/en/stable/features/multimodal_inputs/)、[SGLang 视觉接口](https://docs.sglang.io/docs/basic_usage/openai_api_vision)、[LMDeploy Qwen2.5-VL 部署](https://lmdeploy.readthedocs.io/en/latest/multi_modal/qwen2_5_vl.html)。查输入 schema、模型支持及启动选项，避免把论文与软件版本说明混用。
+- **官方实现文档**：[vLLM 多模态输入](https://docs.vllm.ai/en/stable/features/multimodal_inputs/)、[SGLang 视觉接口](https://docs.sglang.io/docs/basic_usage/openai_api_vision)、[LMDeploy Qwen2.5-VL 部署](https://lmdeploy.readthedocs.io/en/latest/multi_modal/qwen2_5_vl.html)。按所用版本查输入 schema、模型支持及启动选项。
 
 ## 九、章节跳转
 
