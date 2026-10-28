@@ -81,7 +81,7 @@ python -c "import sys; print(sys.executable)"
 
 **最常见的误区**：你的系统里有两个环境 A 和 B。你在终端里用 `pip` 把包装到了 A 环境里，但是你的代码编辑器（比如 VSCode / PyCharm）或者当前终端使用的是 B 环境。于是代码一跑就报错：`ModuleNotFoundError`。
 
-为了确保你把包准确地装进当前你正在使用的 Python 里，**强烈推荐不要直接使用 `pip install`，而是使用 `python -m pip install`**：
+使用 `python -m pip install`，让当前 Python 解释器调用对应的 pip：
 
 ```bash
 # 确保是当前 Python 对应的 pip
@@ -195,7 +195,7 @@ python docs/foundation/code/00_path_check.py
 - 确实忘记安装这个包了。
 - 安装到了环境 A，但你在环境 B 里运行代码。
 - 忘记激活 conda 环境（没有执行 `conda activate xxx`）。
-- 你的 Python 文件名和包名重名了（比如你写了个 `openai.py`，代码就会错误地去导入你自己，而不是真正的工具包）。
+- 你的 Python 文件名和包名重名了（比如你写了个 `openai.py`，代码就会错误地去导入你自己，而不是已安装的包）。
 
 **排查命令：**
 ```bash
