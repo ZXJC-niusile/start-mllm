@@ -2,7 +2,7 @@
 
 > **可选复习**：系统学习从[基础篇总览](./foundation/README.md)开始。本页用于按问题查漏，不是进入正文前必须完成的第二套课程。
 
-本章沿着一条数据流学习：**文本 → token ID → 向量 → 因果注意力 → 词表分数 → 概率 → 选择或计算损失**。目标不是记住术语，而是能用一组小数字解释每一步输入什么、输出什么，以及错误会出现在哪里。
+本章沿着一条数据流学习：**文本 → token ID → 向量 → 因果注意力 → 词表分数 → 概率 → 选择或计算损失**。本章用一组小数字说明每一步的输入、输出与常见错误。
 
 ## 按问题选择复习内容
 
@@ -55,7 +55,7 @@ X = E[IDs]            # 依次取第 0、1、2 行，得到 [T,D]=[3,2]
 
 真实训练会更新嵌入表里的浮点参数。输入 ID 本身不是可求导的连续语义坐标；训练改变的是被选中行的参数，而不是把 ID 2 改成 2.1。
 
-输入嵌入是 token 的初始表示；后续 Transformer 根据上下文更新它。同一 token 在不同句子中的**上下文表示**可以不同。向量中的某一维通常没有预先指定的“动物”“颜色”含义，也不能保证任意语义近的词在原始嵌入表中都很近。Word2Vec 的词向量类比是历史上有用的观察，不是现代 LLM 的普遍定律。
+输入嵌入是 token 的初始表示；后续 Transformer 根据上下文更新它。同一 token 在不同句子中的**上下文表示**可以不同。向量中的某一维通常没有预先指定的“动物”“颜色”含义，向量之间的关系取决于训练目标和数据。Word2Vec 的词向量类比是历史上有用的观察，不是现代 LLM 的普遍定律。
 
 ### 1.3 顺序信息从哪里来
 
@@ -73,7 +73,7 @@ X = E[IDs]            # 依次取第 0、1、2 行，得到 [T,D]=[3,2]
 - **Key（K）**：各位置用于与 query 匹配的向量。
 - **Value（V）**：按匹配权重实际汇总的信息。
 
-Q、K 决定权重，权重再作用到 V；它们不是三份文字，也不保证直接对应人能解释的语义。注意下面的 `V` 是 value 矩阵，词表大小另写为 `Vocab`，避免同名混淆。
+Q、K 决定权重，权重再作用到 V；它们是输入经过不同线性投影得到的矩阵。注意下面的 `V` 是 value 矩阵，词表大小另写为 `Vocab`，避免同名混淆。
 
 为了把数字算清楚，取单个头，`d_k = 1`、`d_v = 2`：
 
@@ -276,7 +276,7 @@ batch、optimizer step、epoch 与学习率的定义见[基础篇 04](./foundati
 
 预训练通常用大规模数据学习下一 token 预测等目标；指令微调（SFT）进一步用任务或对话示例优化输出行为。数据规模、耗时和成本依模型、训练方法及硬件而变，不能据“微调”二字承诺单卡几小时完成。
 
-**Base model** 通常指尚未经过指令微调的预训练模型。它可能通过续写或提示完成问答，并非“不会回答问题”；[GPT-3 原论文](https://arxiv.org/abs/2005.14165)就评估了无任务微调时的问答。SFT 通常使格式与指令遵循更稳定，仍不能保证每次正确。后训练也可能包括偏好优化等步骤，预训练 → SFT 是入门主线而非所有模型的完整流程。
+**Base model** 通常指尚未经过指令微调的预训练模型。它可能通过续写或提示完成问答，并非“不会回答问题”；[GPT-3 原论文](https://arxiv.org/abs/2005.14165)就评估了无任务微调时的问答。SFT 用监督样本训练回答格式与指令遵循行为。后训练也可能包括偏好优化等步骤，预训练 → SFT 是入门主线而非所有模型的完整流程。
 
 “冻结基座模型”在适配器训练语境中，是保持所加载底座的参数不变，只训练指定的新模块（例如 Connector、LoRA）。这个底座也可以是已经过指令微调的 Instruct checkpoint，不必是名称带 Base 的版本。
 
@@ -382,7 +382,7 @@ if torch.cuda.is_available():
     print(torch.cuda.get_device_name(0))
 ```
 
-这个检查不保证模型能装进显存，也不检测所有类型的加速设备。
+这个检查针对 CUDA 可见性；模型显存需求需要另行估算和测量。
 
 #### B. 加载预训练模型
 
@@ -392,7 +392,7 @@ if torch.cuda.is_available():
 
 读到 `model.to("cuda")`，表示尝试把整个模型移到 CUDA 设备，需要足够显存。不要把它当作任何机器都可复制的操作。
 
-加载时的 `device_map="auto"` 借助 Accelerate 自动分配权重，通常先用 GPU，再用 CPU，必要时使用磁盘卸载；具体还受内存限额和卸载配置影响。能加载不等于速度快，也不保证后续推理不超内存。细节见 [Accelerate 大模型推理说明](https://huggingface.co/docs/accelerate/en/usage_guides/big_modeling)。
+加载时的 `device_map="auto"` 借助 Accelerate 自动分配权重，通常先用 GPU，再用 CPU，必要时使用磁盘卸载；具体还受内存限额和卸载配置影响。卸载会引入数据传输开销，推理时还需为中间状态和 KV 缓存预留内存。细节见 [Accelerate 大模型推理说明](https://huggingface.co/docs/accelerate/en/usage_guides/big_modeling)。
 
 #### D. 推理模式
 
@@ -421,7 +421,7 @@ assert y.shape == (2, 4)
 
 小练习：把 `w` 改成 `torch.ones(4, 3)`，运行前先判断能否相乘。答案：不能，矩阵乘法的内侧维度 3 和 4 不匹配。后续读 `input_ids`、`pixel_values`、`attention_mask` 时，也先检查 shape、dtype 和 device。
 
-> **一句话总结**：PyTorch 提供张量、算子、神经网络模块和自动求导；Transformers 在其上提供模型加载、分词/预处理和 `generate()` 等接口。两层职责不同。
+> PyTorch 提供张量、算子、神经网络模块和自动求导；Transformers 在其上提供模型加载、分词/预处理和 `generate()` 等接口。两层职责不同。
 
 ## 七、自测与常见错因
 
@@ -444,9 +444,9 @@ assert y.shape == (2, 4)
 ## 原始论文与深入学习
 
 - **Transformer**：Vaswani 等，*Attention Is All You Need*（2017，[论文](https://arxiv.org/abs/1706.03762)）。重点对照注意力、位置编码和解码器因果掩码。
-- **Word2Vec 类比的来源**：Mikolov 等，*Efficient Estimation of Word Representations in Vector Space*（2013，[论文](https://arxiv.org/abs/1301.3781)）。静态词向量的类比现象不保证现代 LLM 的每个输入嵌入都有相同性质。
-- **核采样**：Holtzman 等，*The Curious Case of Neural Text Degeneration*（2019 / ICLR 2020，[论文](https://arxiv.org/abs/1904.09751)）。论文解释 top-p 的动态候选集合，不为某组 OCR 温度参数提供通用正确性保证。
-- **官方实现文档**：[Transformers KV Cache](https://huggingface.co/docs/transformers/main/kv_cache) 与 [多模态 Chat Template](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal)。用它们核对缓存策略和 API 行为；它们是软件文档，不是发明这些方法的论文。
+- **Word2Vec 类比的来源**：Mikolov 等，*Efficient Estimation of Word Representations in Vector Space*（2013，[论文](https://arxiv.org/abs/1301.3781)）。可了解静态词向量类比任务的定义与评估方式。
+- **核采样**：Holtzman 等，*The Curious Case of Neural Text Degeneration*（2019 / ICLR 2020，[论文](https://arxiv.org/abs/1904.09751)）。论文解释 top-p 的动态候选集合及其对文本生成的影响。
+- **官方实现文档**：[Transformers KV Cache](https://huggingface.co/docs/transformers/main/kv_cache) 与 [多模态 Chat Template](https://huggingface.co/docs/transformers/main/en/chat_templating_multimodal)。用它们核对缓存策略和 API 行为。
 
 ## 八、章节跳转
 
