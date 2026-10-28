@@ -62,7 +62,7 @@ flowchart LR
 
 保存图像摘要、关键字段、用户历史偏好、多轮任务上下文。
 
-这四个模块是本教程的工程拆分，不是一篇论文规定的唯一 Agent 架构。与“推理—行动—观察”交替相关的方法可读 [ReAct 原论文](https://arxiv.org/abs/2210.03629)；本章有限步骤的示例并不等于复现完整 ReAct，也不代表已实现持久记忆。
+这四个模块按工程职责划分。关于“推理—行动—观察”的交替过程，可读 [ReAct 原论文](https://arxiv.org/abs/2210.03629)。本章示例演示有限步骤的工具工作流，尚未实现持久记忆。
 
 <a id="screenshot-agent-workflow"></a>
 
@@ -72,7 +72,7 @@ flowchart LR
 
 > 这个错误是什么意思，下一步我应该怎么处理？
 
-一个合格的多模态 Agent 处理流程可能是：
+可将处理过程组织为：
 
 1. 先通过视觉模型读取截图内容。
 2. 提取关键错误码、报错位置、按钮和上下文。
@@ -141,7 +141,7 @@ flowchart LR
 
 ## 七、一个可直接上手的多模态 Agent 模板
 
-按下面这个模板就能快速搭出原型：
+可按以下步骤设计原型：
 
 1. 用户输入文本 + 图片
 2. 用 VLM 生成图像摘要和关键字段
@@ -160,19 +160,19 @@ flowchart LR
 
 ## 八、实战：从一个 Agent 骨架开始
 
-为了让本章不只停留在设计层面，仓库补充了一个最小 Agent 骨架：
+配套 Agent 示例文件：
 
 - `docs/chapter9/app/agent_workflow_demo.py`
 - `docs/chapter9/app/requirements.txt`
 - `docs/chapter9/app/.env.example`
 
-这个骨架做的事情很克制：
+该示例执行三个步骤：
 
 1. 先调用多模态模型生成图像摘要。
 2. 根据任务类型决定是否调用额外工具。
 3. 返回感知摘要、选中的工具与占位结果，供你继续实现最终总结。
 
-这一版脚本还补了最基本的输入校验和异常返回，方便你后续继续往真实工作流扩展，而不是停留在“理想路径跑通”。
+脚本还包含输入校验与异常返回，可据此检查失败分支。
 
 直接这样运行即可：
 
@@ -190,14 +190,14 @@ python docs/chapter9/app/agent_workflow_demo.py
 
 `agent_workflow_demo.py` 使用**关键字匹配**（`if “报错” in summary`）做工具路由，这是教学简化写法，优点是代码少、好理解；缺点是扩展性差、容易误判。
 
-要继续学习工具调用协议，可以对照 **`agent_workflow_v2.py`**（仍是教学骨架，不是生产框架）：
+要继续学习工具调用协议，可以对照 **`agent_workflow_v2.py`**（演示一轮工具调用）：
 
 - 使用 OpenAI 标准的 **tool-calling JSON schema** 定义工具
 - 让模型自己决定是否调用工具、调用哪个工具、传什么参数
 - 演示一轮规划中的多工具调用，并在本地检查参数、返回工具错误
 - 汇总时保留原始图文输入和 `assistant.tool_calls`，再按 `tool_call_id` 配对工具结果；无工具调用时直接返回首轮答案
 
-两版的检索与抽取函数都只是占位工具。v2 返回 `not_implemented`，字段值为 `null`，不代表已查到文档或识别出票据内容。接入真实工具时，还需传入图片或 OCR 文本等证据。`status: ok` 只表示脚本流程完成，不保证工具已实现或任务成功；请同时检查 `tool_outputs`。
+两版的检索与抽取函数都只是占位工具。v2 返回 `not_implemented`，字段值为 `null`，不代表已查到文档或识别出票据内容。接入真实工具时，还需传入图片或 OCR 文本等证据。`status: ok` 表示脚本流程完成；工具的实现状态与执行结果记录在 `tool_outputs` 中。
 
 工具 schema 描述参数形状，不会自动实现工具、重试、记忆或安全控制。v2 只执行一轮工具调用，不包含多轮 Agent 循环。接口与模型需要同时支持图像输入和 Chat Completions 工具调用，兼容接口的能力应单独核实。协议参考：[OpenAI Function calling](https://developers.openai.com/api/docs/guides/function-calling)。
 
@@ -229,13 +229,6 @@ python docs/chapter9/app/agent_workflow_demo.py
 
 （未设置 `IMAGE_PATH` 时，同样会按 `docs/learner_paths.py` 规则尝试第五章占位图；需先在 `docs/chapter5/code` 运行 `create_placeholder_images.py`。）
 
-它不是一个完整框架，但很适合拿来继续改造成：
-
-- 截图助手
-- 文档分析助手
-- 图片审核助手
-- 商品图运营助手
-
 ## 九、章末练习
 
 本节围绕感知错误、工具选择和失败处理整理工作流，并与第五章记录的失败模式对应。
@@ -263,9 +256,9 @@ python docs/chapter9/app/agent_workflow_demo.py
 
 ## 原始论文与深入学习
 
-- **方法论文**：Yao 等，*ReAct: Synergizing Reasoning and Acting in Language Models*（2022 / ICLR 2023，[原文](https://arxiv.org/abs/2210.03629)）。关注行动如何取得新观察并影响后续决策；论文不能为本章 OCR 占位工具的识别能力背书。
-- **协议文档，不是 Agent 论文**：[OpenAI Function calling](https://developers.openai.com/api/docs/guides/function-calling)。对照工具定义、调用标识和工具结果回传；schema 只规定数据形式，不自动执行工具、校验业务结果或提供授权与回退策略。
-- **练习**：对照 v1 的规则分支与 v2 的工具调用，画出一次完整轨迹，标出真实工具、占位返回和结束条件，避免把“能返回 JSON”当作可靠完成任务。
+- **方法论文**：Yao 等，*ReAct: Synergizing Reasoning and Acting in Language Models*（2022 / ICLR 2023，[原文](https://arxiv.org/abs/2210.03629)）。关注行动如何取得新观察并影响后续决策。
+- **协议文档**：[OpenAI Function calling](https://developers.openai.com/api/docs/guides/function-calling)。对照工具定义、调用标识和工具结果回传；schema 只规定数据形式，不自动执行工具、校验业务结果或提供授权与回退策略。
+- **练习**：对照 v1 的规则分支与 v2 的工具调用，画出一次完整轨迹，标出真实工具、占位返回和结束条件，并逐步检查输出是否满足任务要求。
 
 ## 十一、章节跳转
 
