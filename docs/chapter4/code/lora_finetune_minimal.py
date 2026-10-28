@@ -42,7 +42,7 @@ from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration, Trai
 MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
 DATA_PATH = Path(__file__).with_name("sample_multimodal_sft.jsonl")
 OUTPUT_DIR = Path("./lora_output")
-MAX_SAMPLES = 100          # 先用 100 条建立手感
+MAX_SAMPLES = 100          # 本次训练最多读取 100 条样本
 NUM_EPOCHS = 3
 BATCH_SIZE = 1
 GRAD_ACCUM = 4             # 等效 batch_size = 1 * 4 = 4
