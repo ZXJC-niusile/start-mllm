@@ -25,8 +25,12 @@ def save_solid_png(path: Path, width: int, height: int, r: int, g: int, b: int) 
     signature = b"\x89PNG\r\n\x1a\n"
     ihdr = struct.pack("!2I5B", width, height, 8, 2, 0, 0, 0)
     png = signature + _png_chunk(b"IHDR", ihdr) + _png_chunk(b"IDAT", compressed) + _png_chunk(b"IEND", b"")
+    # Windows 的 xb 可能跟随悬空符号链接；在创建文件前保留已有链接。
+    if path.is_symlink():
+        print(f"Skipped existing symlink: {path}")
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
-    # 排他创建，避免重复运行覆盖真实图片，也不跟随已有符号链接。
+    # 排他创建，避免重复运行覆盖已有文件。
     try:
         with path.open("xb") as output:
             output.write(png)
