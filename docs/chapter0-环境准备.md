@@ -63,7 +63,7 @@ python --version   # 应显示 3.10.x
 python -c "import torch; print(torch.cuda.is_available())"
 ```
 
-输出 `True` 只说明当前 PyTorch 能访问 CUDA 设备，不保证显存足够。第七章本地示例的资源需求还受权重精度、图像尺寸、输入与输出长度、batch 和注意力实现影响；8GB 是否足够需在固定配置下实测，下面的估算不能替代运行验证。
+输出 `True` 表示当前 PyTorch 能访问 CUDA 设备。第七章本地示例的资源需求还受权重精度、图像尺寸、输入与输出长度、batch 和注意力实现影响；8GB 是否足够需在固定配置下实测。
 
 只有当上一条命令输出 `True` 时，再继续执行下面这条，否则会直接报错：
 
@@ -121,7 +121,7 @@ cu121 表示 CUDA 12.1，仅为示例。实际安装时请到 https://pytorch.or
 - `batch_size=1`、总序列长度 1000、FP16 缓存时：2 × 36 × 2 × 128 × 1000 × 2 = **36,864,000 bytes ≈ 35.2 MiB**。这仅是 KV 张量，**不是总显存**。
 - [官方权重索引](https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/main/model.safetensors.index.json)的 `total_size=7,509,245,952` bytes，即 BF16 全模型权重约 **7.51 GB（6.99 GiB）**，已含视觉部分；不能把名称中的“3B”直接当作全模型精确参数量。
 
-本节是**参考估算，尚待固定环境实测**，不保证 8GB 可运行，也不能据此断言一定无法运行。验证时请记录依赖版本、模型版本、图像尺寸、`max_pixels`、`max_new_tokens`、batch、dtype、注意力实现，以及峰值 `allocated` / `reserved` 显存。更大模型、更长序列和更高图像分辨率通常会增加资源需求。
+本节为**参考估算，尚待固定环境实测**。验证时请记录依赖版本、模型版本、图像尺寸、`max_pixels`、`max_new_tokens`、batch、dtype、注意力实现，以及峰值 `allocated` / `reserved` 显存。更大模型、更长序列和更高图像分辨率通常会增加资源需求。
 
 ### 国产与 Mac 硬件速览
 
@@ -132,7 +132,7 @@ cu121 表示 CUDA 12.1，仅为示例。实际安装时请到 https://pytorch.or
 | **昇腾（Ascend）** | 需要适配 MindSpore 或 CANN，部分开源模型已有支持 | 企业级部署可关注，个人学习门槛较高 |
 | **纯 CPU** | 极慢，仅适合极小模型体验 | 不推荐，优先走 API 方案 |
 
-**一句话建议**：如果你的显存 < 8GB，强烈建议先走 API 方案（见下一节），等确认需求后再考虑升级硬件。
+显存不足时，可以先用下一节的 API 方案完成调用练习，再根据本地运行需求选择硬件。
 
 ## 六、没有 GPU 怎么办（API 方案）
 
