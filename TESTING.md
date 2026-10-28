@@ -12,3 +12,5 @@ python scripts/check_docs.py
 文档检查覆盖 Git 跟踪的 Markdown 文件，检查本地目标路径、显式片段 ID 与代码围栏。跨页片段链接应指向显式 HTML `id`，以兼容 GitHub 和 Docsify。它不检查外部网址可用性或浏览器渲染。
 
 上述命令可在 Windows 与 Linux 中执行。真实 GPU 训练、模型兼容性和在线 API 行为需要单独验证。
+
+GitHub Actions 对 PR 和 main 推送运行以上检查，覆盖 Ubuntu / Python 3.10 和 Windows / Python 3.13。
